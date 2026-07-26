@@ -14,7 +14,7 @@
 .bar{height:12px;background:#d1d5db;border-radius:999px;overflow:hidden;margin-bottom:8px}
 .bar>div{height:100%;width:100%;background:#ef4444}
 .wrap{position:relative;height:calc(100dvh - 330px);min-height:360px;max-height:560px;border-radius:18px;overflow:hidden;background:#20252b;touch-action:none}
-.wrap.shake{animation:screenShake .07s infinite}
+.wrap.shake canvas{animation:screenShake .07s infinite}
 .wrap.flash::after{content:"";position:absolute;inset:0;background:#fff;opacity:.72;pointer-events:none;z-index:8;animation:flashOut .22s forwards}
 @keyframes screenShake{0%{transform:translate(7px,2px)}25%{transform:translate(-7px,-4px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-5px,4px)}100%{transform:translate(3px,-2px)}}
 @keyframes flashOut{to{opacity:0}}
