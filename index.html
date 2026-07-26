@@ -6,7 +6,7 @@
 <title>4台対決 スポーツカーレース</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{touch-action:manipulation;overscroll-behavior:none} body{margin:0;background:#f3f4f6;color:#111827;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{touch-action:none;overscroll-behavior:none} body{margin:0;background:#f3f4f6;color:#111827;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .app{max-width:520px;margin:auto;padding:10px 10px 190px;height:100dvh;overflow:hidden}
 .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
 .card{background:#fff;border-radius:12px;padding:8px;text-align:center;box-shadow:0 1px 4px #0002}
@@ -14,9 +14,7 @@
 .bar{height:12px;background:#d1d5db;border-radius:999px;overflow:hidden;margin-bottom:8px}
 .bar>div{height:100%;width:100%;background:#ef4444}
 .wrap{position:relative;height:calc(100dvh - 330px);min-height:360px;max-height:560px;border-radius:18px;overflow:hidden;background:#20252b;touch-action:none}
-.wrap.shake canvas{animation:screenShake .07s infinite}
 .wrap.flash::after{content:"";position:absolute;inset:0;background:#fff;opacity:.72;pointer-events:none;z-index:8;animation:flashOut .22s forwards}
-@keyframes screenShake{0%{transform:translate(7px,2px)}25%{transform:translate(-7px,-4px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-5px,4px)}100%{transform:translate(3px,-2px)}}
 @keyframes flashOut{to{opacity:0}}
 canvas{width:100%;height:100%;display:block}
 .notice{position:absolute;left:50%;transform:translateX(-50%);top:70px;padding:10px 16px;border-radius:999px;color:white;background:#111827dd;font-weight:800;display:none;z-index:5;white-space:nowrap}
@@ -24,13 +22,13 @@ canvas{width:100%;height:100%;display:block}
 .panelbox{background:white;border-radius:18px;padding:20px;text-align:center;width:min(90%,320px)}
 button{font:inherit;border:0;border-radius:14px;padding:15px;font-weight:800;touch-action:none;-webkit-user-select:none;user-select:none}
 .primary{width:100%;background:#ef4444;color:#fff;margin-top:12px}
-.game-controls{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 92px);width:min(calc(100vw - 28px),492px);display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:10px;pointer-events:auto;z-index:9999}
-.game-controls button{position:static!important;transform:none!important;width:100%!important;height:68px!important;padding:8px 4px;background:#fffffff7;box-shadow:0 4px 16px #0006;font-size:18px;border:3px solid #fff;touch-action:none}
+.game-controls{position:absolute;left:18px;right:18px;bottom:16px;display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:10px;pointer-events:auto;z-index:30}
+.game-controls button{position:static!important;transform:none!important;width:100%!important;height:72px!important;padding:8px 4px;background:#fffffff7;box-shadow:0 4px 16px #0006;font-size:18px;border:3px solid #fff;touch-action:none}
 #leftBtn{background:#ffffff;color:#111827}
 #rightBtn{background:#ffffff;color:#111827}
 #boostBtn{background:#f59e0b;color:#111827;font-size:17px}
-#status{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 166px);width:min(calc(100vw - 40px),470px);text-align:center;color:white;background:#111827e8;border-radius:999px;padding:6px 10px;font-size:12px;z-index:9998;pointer-events:none}
-@media(max-height:700px){.wrap{height:calc(100dvh - 300px);min-height:330px}.card{padding:5px}.value{font-size:18px}.label{font-size:11px}.hud{margin-bottom:6px}.bar{margin-bottom:6px}.game-controls{bottom:calc(env(safe-area-inset-bottom) + 78px)}#status{bottom:calc(env(safe-area-inset-bottom) + 150px)}}
+#status{position:absolute;left:22px;right:22px;bottom:96px;text-align:center;color:white;background:#111827e8;border-radius:999px;padding:6px 10px;font-size:12px;z-index:29;pointer-events:none}
+@media(max-height:700px){.wrap{height:calc(100dvh - 300px);min-height:330px}.card{padding:5px}.value{font-size:18px}.label{font-size:11px}.hud{margin-bottom:6px}.bar{margin-bottom:6px}.game-controls{left:14px;right:14px;bottom:12px}.game-controls button{height:64px;font-size:16px}#status{bottom:82px;font-size:11px}}
 .hidden{display:none!important}
 </style>
 </head>
@@ -93,7 +91,7 @@ function resize(){
  canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
  if(!running) playerReset();
 }
-function playerReset(){player.x=W/2-player.w/2;player.y=Math.max(120,H-120)}
+function playerReset(){player.x=W/2-player.w/2;player.y=Math.max(120,H-205)}
 function reset(){
  elapsed=0;roadOffset=0;score=0;boostEnergy=100;boostTimer=0;boostCooldown=0;itemBoostTimer=0;
  nextBoxTimer=1.8;questionBoxes=[];roadBlocks=[];truck=null;truckWarning=0;nextTruckTimer=12;particles=[];skidMarks=[];player.progress=0;player.stun=0;player.spin=0;player.stopTimer=0;playerReset();
@@ -158,8 +156,6 @@ function spawnTruckWarning(){
  if(truck||truckWarning>0)return;
  truckWarning=2.6;
  show('⚠ 暴走トラック接近!!','#7f1d1d');
- wrap.classList.add('shake');
- setTimeout(()=>wrap.classList.remove('shake'),650);
 }
 function spawnTruck(){
  const roadL=W*.09+12,roadR=W*.91-98;
@@ -171,8 +167,6 @@ function spawnTruck(){
    smokeTick:0,markTick:0,angle:0,rotating:Math.random()<0.5,rotSpeed:(Math.random()>.5?1:-1)*(5.5+Math.random()*3)
  };
  show(truck.rotating?'🚛 回転暴走トラック!!':'🚛 暴走トラック突入！',truck.rotating?'#7c2d12':'#991b1b');
- wrap.classList.add('shake');
- setTimeout(()=>wrap.classList.remove('shake'),850);
 }
 function addParticle(type,x,y,count){
  for(let i=0;i<count;i++){
@@ -196,8 +190,7 @@ function crashVehicle(v,isPlayer){
    boostTimer=0;itemBoostTimer=0;
    score=Math.max(0,score-300);
    show('CRASH!! スピンして停止！','#7f1d1d');
-   wrap.classList.add('shake','flash');
-   setTimeout(()=>wrap.classList.remove('shake'),1000);
+   wrap.classList.add('flash');
    setTimeout(()=>wrap.classList.remove('flash'),260);
    if(navigator.vibrate) navigator.vibrate([120,60,180]);
  }
@@ -354,9 +347,14 @@ function update(dt){
  resolveCarOverlaps();
  updateTruck(dt);updateEffects(dt);updateHud();if(elapsed>=180)finish()
 }
+function currentRankMap(){
+ const vehicles=[{v:player,progress:player.progress},...npcs.map(n=>({v:n,progress:n.progress}))].sort((a,b)=>b.progress-a.progress);
+ const map=new Map();vehicles.forEach((o,i)=>map.set(o.v,i+1));return map;
+}
 function draw(){ctx.clearRect(0,0,W,H);drawRoad();drawEffects();questionBoxes.forEach(drawBox);roadBlocks.forEach(drawBlock);drawTruck();
- npcs.forEach(n=>drawCar(n.x,n.y,n.w,n.h,`hsl(${n.hue} 75% 55%)`,'N',n.boostTimer>0||n.itemBoostTimer>0,n.spin||0));
- drawCar(player.x,player.y,player.w,player.h,'#e53935','P',boostTimer>0||itemBoostTimer>0,player.spin||0)}
+ const ranks=currentRankMap();
+ npcs.forEach(n=>drawCar(n.x,n.y,n.w,n.h,`hsl(${n.hue} 75% 55%)`,String(ranks.get(n)),n.boostTimer>0||n.itemBoostTimer>0,n.spin||0));
+ drawCar(player.x,player.y,player.w,player.h,'#e53935',String(ranks.get(player)),boostTimer>0||itemBoostTimer>0,player.spin||0)}
 function loop(now){if(!running)return;const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw();if(running)requestAnimationFrame(loop)}
 function hold(btn,side){const set=v=>side==='l'?left=v:right=v;btn.onpointerdown=e=>{e.preventDefault();set(true);btn.setPointerCapture(e.pointerId)};btn.onpointerup=()=>set(false);btn.onpointercancel=()=>set(false);btn.onlostpointercapture=()=>set(false)}
 hold(document.getElementById('leftBtn'),'l');hold(document.getElementById('rightBtn'),'r');
