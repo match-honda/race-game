@@ -7,13 +7,13 @@
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{touch-action:manipulation;overscroll-behavior:none} body{margin:0;background:#f3f4f6;color:#111827;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.app{max-width:520px;margin:auto;padding:12px}
+.app{max-width:520px;margin:auto;padding:10px 10px 190px;height:100dvh;overflow:hidden}
 .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
 .card{background:#fff;border-radius:12px;padding:8px;text-align:center;box-shadow:0 1px 4px #0002}
 .label{font-size:12px;color:#6b7280}.value{font-weight:800;font-size:20px}
 .bar{height:12px;background:#d1d5db;border-radius:999px;overflow:hidden;margin-bottom:8px}
 .bar>div{height:100%;width:100%;background:#ef4444}
-.wrap{position:relative;height:540px;border-radius:18px;overflow:hidden;background:#20252b;touch-action:none}
+.wrap{position:relative;height:calc(100dvh - 330px);min-height:360px;max-height:560px;border-radius:18px;overflow:hidden;background:#20252b;touch-action:none}
 .wrap.shake{animation:screenShake .07s infinite}
 .wrap.flash::after{content:"";position:absolute;inset:0;background:#fff;opacity:.72;pointer-events:none;z-index:8;animation:flashOut .22s forwards}
 @keyframes screenShake{0%{transform:translate(7px,2px)}25%{transform:translate(-7px,-4px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-5px,4px)}100%{transform:translate(3px,-2px)}}
@@ -24,10 +24,13 @@ canvas{width:100%;height:100%;display:block}
 .panelbox{background:white;border-radius:18px;padding:20px;text-align:center;width:min(90%,320px)}
 button{font:inherit;border:0;border-radius:14px;padding:15px;font-weight:800;touch-action:none;-webkit-user-select:none;user-select:none}
 .primary{width:100%;background:#ef4444;color:#fff;margin-top:12px}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.controls button{background:white;box-shadow:0 1px 4px #0002;font-size:20px}
-#boostBtn{display:block;width:calc(100% - 40px);margin:10px 20px 0;background:#f59e0b;color:#111827;font-size:19px}
-#status{text-align:center;color:#4b5563;font-size:13px;margin:8px 0 0}
+.game-controls{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 92px);width:min(calc(100vw - 28px),492px);display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:10px;pointer-events:auto;z-index:9999}
+.game-controls button{position:static!important;transform:none!important;width:100%!important;height:68px!important;padding:8px 4px;background:#fffffff7;box-shadow:0 4px 16px #0006;font-size:18px;border:3px solid #fff;touch-action:none}
+#leftBtn{background:#ffffff;color:#111827}
+#rightBtn{background:#ffffff;color:#111827}
+#boostBtn{background:#f59e0b;color:#111827;font-size:17px}
+#status{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 166px);width:min(calc(100vw - 40px),470px);text-align:center;color:white;background:#111827e8;border-radius:999px;padding:6px 10px;font-size:12px;z-index:9998;pointer-events:none}
+@media(max-height:700px){.wrap{height:calc(100dvh - 300px);min-height:330px}.card{padding:5px}.value{font-size:18px}.label{font-size:11px}.hud{margin-bottom:6px}.bar{margin-bottom:6px}.game-controls{bottom:calc(env(safe-area-inset-bottom) + 78px)}#status{bottom:calc(env(safe-area-inset-bottom) + 150px)}}
 .hidden{display:none!important}
 </style>
 </head>
@@ -60,14 +63,14 @@ button{font:inherit;border:0;border-radius:14px;padding:15px;font-weight:800;tou
         <button class="primary" id="retryBtn">もう一度</button>
       </div>
     </div>
-  </div>
 
-  <div class="controls">
-    <button id="leftBtn">◀ 左</button>
-    <button id="rightBtn">右 ▶</button>
+    <div class="game-controls">
+      <button id="leftBtn">◀ 左</button>
+      <button id="rightBtn">右 ▶</button>
+      <button id="boostBtn">⚡ オーバーテイク</button>
+    </div>
+    <p id="status">前方に敵車がいない時だけ加速できます。</p>
   </div>
-  <button id="boostBtn">⚡ オーバーテイク</button>
-  <p id="status">前方に敵車がいない時だけ加速できます。</p>
 </div>
 
 <script>
@@ -90,7 +93,7 @@ function resize(){
  canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
  if(!running) playerReset();
 }
-function playerReset(){player.x=W/2-player.w/2;player.y=H-105}
+function playerReset(){player.x=W/2-player.w/2;player.y=Math.max(120,H-120)}
 function reset(){
  elapsed=0;roadOffset=0;score=0;boostEnergy=100;boostTimer=0;boostCooldown=0;itemBoostTimer=0;
  nextBoxTimer=1.8;questionBoxes=[];roadBlocks=[];truck=null;truckWarning=0;nextTruckTimer=12;particles=[];skidMarks=[];player.progress=0;player.stun=0;player.spin=0;player.stopTimer=0;playerReset();
