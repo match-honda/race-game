@@ -74,9 +74,9 @@ const duration=180,lanes=4;
 const player={lane:1,x:0,y:0,w:58,h:118,progress:0,speed:164,rank:4,stun:0,shield:0,itemSpeed:0,magnet:0};
 let rivals=[],traffic=[];
 const settings={
- 1:{rivalSpeed:[158,161,163],reaction:.0018,laneAggro:.72,boostChance:.0008,traffic:5,trafficSpeed:[118,136]},
- 2:{rivalSpeed:[162,165,168],reaction:.0030,laneAggro:.82,boostChance:.0017,traffic:7,trafficSpeed:[122,142]},
- 3:{rivalSpeed:[166,169,173],reaction:.0045,laneAggro:.9,boostChance:.0030,traffic:9,trafficSpeed:[126,148]}
+ 1:{rivalSpeed:[162,164,166],reaction:.0028,laneAggro:.80,boostChance:.0040,boostPower:78,catchup:7.0,traffic:5,trafficSpeed:[118,136]},
+ 2:{rivalSpeed:[165,168,171],reaction:.0040,laneAggro:.88,boostChance:.0055,boostPower:82,catchup:8.5,traffic:7,trafficSpeed:[122,142]},
+ 3:{rivalSpeed:[169,172,176],reaction:.0055,laneAggro:.94,boostChance:.0070,boostPower:88,catchup:10.0,traffic:9,trafficSpeed:[126,148]}
 };
 function resize(){dpr=Math.min(2,devicePixelRatio||1);W=app.clientWidth;H=app.clientHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);hero.width=330*dpr;hero.height=190*dpr;hx.setTransform(dpr,0,0,dpr,0,0);drawHero();player.y=H-214}
 addEventListener('resize',resize);resize();
@@ -116,12 +116,21 @@ function update(dt){
    n.boostTime=Math.max(0,n.boostTime-dt);n.boostCooldown=Math.max(0,n.boostCooldown-dt);n.shield=Math.max(0,n.shield-dt);n.itemSpeed=Math.max(0,n.itemSpeed-dt);n.magnet=Math.max(0,n.magnet-dt);
    if(n.boostTime===0&&n._wasBoosting){n.boostCooldown=20;n._wasBoosting=false}
    const gap=player.progress-n.progress;let target=n.baseSpeed;
-   if(gap>65) target+=difficulty*3.5+Math.min(10,gap*.035);if(gap<-90) target-=2.5;
-   if(n.boostTime>0) target+=72;if(n.itemSpeed>0)target+=45;
-   n.speed+=(target-n.speed)*Math.min(1,dt*2.2);
-   if(n.boostTime<=0&&n.boostCooldown<=0&&Math.random()<cfg.boostChance*.16&&gap>-40&&gap<180){n.boostTime=10;n._wasBoosting=true}
+   if(gap>35) target+=cfg.catchup+Math.min(14,gap*.05);
+   if(gap<-110) target-=2;
+   if(n.boostTime>0) target+=cfg.boostPower;
+   if(n.itemSpeed>0)target+=45;
+   n.speed+=(target-n.speed)*Math.min(1,dt*2.6);
+   const closeBattle=gap>-70&&gap<210;
+   const playerBoosting=boost>0;
+   const dangerOfLosing=gap>55;
+   const chance=cfg.boostChance*(dangerOfLosing?1.8:1)*(playerBoosting?1.5:1);
+   if(n.boostTime<=0&&n.boostCooldown<=0&&closeBattle&&Math.random()<chance){
+     n.boostTime=10;n._wasBoosting=true;
+     if(Math.random()<.45)n.lane=findSafeLane(n,[player,...allNPC]);
+   }
    n.progress+=n.speed*dt;n.y=H*.56-(n.progress-player.progress)*1.45;
-   if(Math.random()<cfg.reaction)n.lane=findSafeLane(n,[player,...allNPC]);n.x=laneX(n.lane,n.y);
+   if(Math.random()<cfg.reaction*(gap>0?1.35:1))n.lane=findSafeLane(n,[player,...allNPC]);n.x=laneX(n.lane,n.y);
  });
  traffic.forEach(n=>{
    n.shield=Math.max(0,n.shield-dt);n.itemSpeed=Math.max(0,n.itemSpeed-dt);n.magnet=Math.max(0,n.magnet-dt);
@@ -153,7 +162,27 @@ function drawFormula(ctx,cx,cy,w,h,color,isPlayer=false,ang=0,rank=0,showRank=tr
 }
 function drawItemBox(b){x.save();x.translate(b.x,b.y);x.rotate(Math.sin(b.spin)*.12);x.shadowColor='#ffb000';x.shadowBlur=16;x.fillStyle='#ffb300';roundedRect(x,-21,-21,42,42,8);x.fill();x.shadowBlur=0;x.strokeStyle='#fff3';x.lineWidth=3;x.stroke();x.fillStyle='#111827';x.font='1000 28px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('?',0,2);x.restore()}
 function drawTruck(){if(!truck)return;x.save();x.translate(truck.x,truck.y);x.rotate(truck.angle);x.shadowColor='#000';x.shadowBlur=20;x.shadowOffsetY=14;x.fillStyle='#a51616';roundedRect(x,-truck.w/2,-truck.h/2,truck.w,truck.h,15);x.fill();x.shadowColor='transparent';x.fillStyle='#dce6f2';x.fillRect(-32,-66,64,42);x.fillStyle='#121722';x.fillRect(-51,-56,12,42);x.fillRect(39,-56,12,42);x.fillRect(-51,39,12,42);x.fillRect(39,39,12,42);x.fillStyle='#fff';x.font='900 18px sans-serif';x.textAlign='center';x.fillText('暴走',0,12);x.fillText('TRUCK',0,38);x.restore()}
-function drawAura(car){if(car.shield>0){x.save();x.strokeStyle='#56c7ff';x.lineWidth=4;x.globalAlpha=.8;x.beginPath();x.ellipse(car.x,car.y,car.w*.72,car.h*.62,0,0,Math.PI*2);x.stroke();x.restore()}}
+function drawAura(car){
+ if(car.shield>0){x.save();x.strokeStyle='#56c7ff';x.lineWidth=4;x.globalAlpha=.8;x.beginPath();x.ellipse(car.x,car.y,car.w*.72,car.h*.62,0,0,Math.PI*2);x.stroke();x.restore()}
+ if(car.type==='rival'&&car.boostTime>0){
+   x.save();
+   const pulse=.65+.35*Math.sin(t*10+car.lane);
+   x.globalAlpha=.72;
+   x.strokeStyle='#ff7a18';x.lineWidth=3;
+   x.beginPath();x.ellipse(car.x,car.y,car.w*.78,car.h*.66,0,0,Math.PI*2);x.stroke();
+   x.globalAlpha=.8;
+   const flame=x.createLinearGradient(car.x,car.y+car.h*.35,car.x,car.y+car.h*.9);
+   flame.addColorStop(0,'#fff8a6');flame.addColorStop(.32,'#ff9d00');flame.addColorStop(1,'rgba(255,45,0,0)');
+   x.fillStyle=flame;
+   for(let i=-1;i<=1;i++){
+     x.beginPath();x.moveTo(car.x+i*7-3,car.y+car.h*.38);x.lineTo(car.x+i*7+3,car.y+car.h*.38);x.lineTo(car.x+i*7+(Math.random()-.5)*5,car.y+car.h*(.65+.18*pulse));x.closePath();x.fill();
+   }
+   const labelY=car.y-car.h*.62;
+   x.globalAlpha=.94;x.fillStyle='#ff7a18';roundedRect(x,car.x-34,labelY-12,68,24,10);x.fill();
+   x.fillStyle='#111827';x.font='900 10px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('OVERTAKE',car.x,labelY);
+   x.restore();
+ }
+}
 function draw(){x.save();if(shake)x.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);roadPerspective();const all=contenders().sort((a,b)=>b.progress-a.progress);itemBoxes.forEach(drawItemBox);traffic.forEach(n=>{drawFormula(x,n.x,n.y,42,82,n.color,false,0,0,false);drawAura(n)});rivals.forEach(n=>{const r=all.indexOf(n)+1;drawFormula(x,n.x,n.y,50,98,n.color,false,0,r,true);drawAura(n)});drawTruck();drawFormula(x,player.x,player.y,58,114,'#fff',true,0,all.indexOf(player)+1,true);drawAura(player);if(boost>0||player.itemSpeed>0){x.save();x.globalAlpha=.78;x.fillStyle=boost?'#ff2d82':'#4ade80';for(let i=0;i<7;i++)x.fillRect(player.x-2+(Math.random()-.5)*15,player.y+55+i*10,5,24);x.restore()}x.restore()}
 function loop(now){if(!running)return;const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop)}
 function drawHero(){const cw=330,ch=190;hx.clearRect(0,0,cw,ch);const g=hx.createRadialGradient(cw/2,100,10,cw/2,100,150);g.addColorStop(0,'#ff2d8242');g.addColorStop(.55,'#18203355');g.addColorStop(1,'transparent');hx.fillStyle=g;hx.fillRect(0,0,cw,ch);for(let i=0;i<8;i++){hx.strokeStyle=`rgba(255,45,130,${.03+i*.006})`;hx.beginPath();hx.moveTo(cw/2-120+i*30,170);hx.lineTo(cw/2-45+i*10,20);hx.stroke()}drawFormula(hx,cw/2,100,98,152,'#fff',true,-.16,1,true)}
