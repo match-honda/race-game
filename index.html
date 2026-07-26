@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>4台対決 スポーツカーレース</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box} body{margin:0;background:#f3f4f6;color:#111827}
+.app{max-width:520px;margin:auto;padding:12px}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.card{background:#fff;border-radius:12px;padding:8px;text-align:center;box-shadow:0 1px 4px #0002}
+.label{font-size:12px;color:#6b7280}.value{font-weight:800;font-size:20px}
+.bar{height:12px;background:#d1d5db;border-radius:999px;overflow:hidden;margin-bottom:8px}
+.bar>div{height:100%;width:100%;background:#ef4444}
+.wrap{position:relative;height:540px;border-radius:18px;overflow:hidden;background:#20252b;touch-action:none}
+.wrap.shake{animation:screenShake .07s infinite}
+.wrap.flash::after{content:"";position:absolute;inset:0;background:#fff;opacity:.72;pointer-events:none;z-index:8;animation:flashOut .22s forwards}
+@keyframes screenShake{0%{transform:translate(7px,2px)}25%{transform:translate(-7px,-4px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-5px,4px)}100%{transform:translate(3px,-2px)}}
+@keyframes flashOut{to{opacity:0}}
+canvas{width:100%;height:100%;display:block}
+.notice{position:absolute;left:50%;transform:translateX(-50%);top:70px;padding:10px 16px;border-radius:999px;color:white;background:#111827dd;font-weight:800;display:none;z-index:5;white-space:nowrap}
+.panel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0009;padding:18px;z-index:10}
+.panelbox{background:white;border-radius:18px;padding:20px;text-align:center;width:min(90%,320px)}
+button{font:inherit;border:0;border-radius:14px;padding:15px;font-weight:800}
+.primary{width:100%;background:#ef4444;color:#fff;margin-top:12px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.controls button{background:white;box-shadow:0 1px 4px #0002;font-size:20px}
+#boostBtn{width:100%;margin-top:10px;background:#f59e0b;color:#111827;font-size:19px}
+#status{text-align:center;color:#4b5563;font-size:13px;margin:8px 0 0}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hud">
+    <div class="card"><div class="label">順位</div><div class="value" id="rank">4位</div></div>
+    <div class="card"><div class="label">残り</div><div class="value" id="time">30.0</div></div>
+    <div class="card"><div class="label">スコア</div><div class="value" id="score">0</div></div>
+    <div class="card"><div class="label">ブースト</div><div class="value" id="boostValue">100%</div></div>
+  </div>
+  <div class="bar"><div id="boostBar"></div></div>
+
+  <div class="wrap" id="wrap">
+    <canvas id="game"></canvas>
+    <div class="notice" id="notice"></div>
+
+    <div class="panel" id="startPanel">
+      <div class="panelbox">
+        <h2>4台対決レース</h2>
+        <p>左右に移動して、はてなボックスを取ろう。<br>爆破・加速・通行止めの3種類がランダムで発動します。敵もボックスを取ってアイテムを使います。</p>
+        <button class="primary" id="startBtn">レーススタート</button>
+      </div>
+    </div>
+
+    <div class="panel hidden" id="resultPanel">
+      <div class="panelbox">
+        <h2 id="resultTitle">レース終了！</h2>
+        <p id="resultText"></p>
+        <button class="primary" id="retryBtn">もう一度</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="leftBtn">◀ 左</button>
+    <button id="rightBtn">右 ▶</button>
+  </div>
+  <button id="boostBtn">⚡ オーバーテイク</button>
+  <p id="status">前方に敵車がいない時だけ加速できます。</p>
+</div>
+
+<script>
+(() => {
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),wrap=document.getElementById('wrap');
+const rankEl=document.getElementById('rank'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score');
+const boostValueEl=document.getElementById('boostValue'),boostBar=document.getElementById('boostBar');
+const boostBtn=document.getElementById('boostBtn'),notice=document.getElementById('notice'),status=document.getElementById('status');
+const startPanel=document.getElementById('startPanel'),resultPanel=document.getElementById('resultPanel');
+const resultTitle=document.getElementById('resultTitle'),resultText=document.getElementById('resultText');
+
+let W=360,H=540,running=false,last=0,elapsed=0,roadOffset=0,score=0,left=false,right=false;
+let boostEnergy=100,boostTimer=0,boostCooldown=0,itemBoostTimer=0;
+let questionBoxes=[],roadBlocks=[],nextBoxTimer=1.8,truck=null,truckWarning=0,nextTruckTimer=12,particles=[],skidMarks=[];
+const player={x:0,y:0,w:38,h:70,speed:255,progress:0,stun:0};
+let npcs=[];
+
+function resize(){
+ const dpr=devicePixelRatio||1; W=wrap.clientWidth; H=wrap.clientHeight;
+ canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+ if(!running) playerReset();
+}
+function playerReset(){player.x=W/2-player.w/2;player.y=H-105}
+function reset(){
+ elapsed=0;roadOffset=0;score=0;boostEnergy=100;boostTimer=0;boostCooldown=0;itemBoostTimer=0;
+ nextBoxTimer=1.8;questionBoxes=[];roadBlocks=[];truck=null;truckWarning=0;nextTruckTimer=12;particles=[];skidMarks=[];player.progress=0;player.stun=0;player.spin=0;player.stopTimer=0;playerReset();
+ npcs=[
+ {x:W*.18,y:H-245,w:36,h:68,baseSpeed:154,targetX:W*.18,progress:85,hue:205,boostTimer:0,itemBoostTimer:0,boostCooldown:0,wasAhead:true,stun:0,spin:0,stopTimer:0},
+ {x:W*.45,y:H-345,w:36,h:68,baseSpeed:158,targetX:W*.45,progress:135,hue:48,boostTimer:0,itemBoostTimer:0,boostCooldown:0,wasAhead:true,stun:0,spin:0,stopTimer:0},
+ {x:W*.72,y:H-180,w:36,h:68,baseSpeed:151,targetX:W*.72,progress:55,hue:290,boostTimer:0,itemBoostTimer:0,boostCooldown:0,wasAhead:true,stun:0,spin:0,stopTimer:0}
+ ]; updateHud();
+}
+function start(){reset();startPanel.classList.add('hidden');resultPanel.classList.add('hidden');running=true;last=performance.now();requestAnimationFrame(loop)}
+function finish(){running=false;const r=rank();resultTitle.textContent=r===1?'優勝！':'レース終了！';resultText.textContent=`最終順位は${r}位、スコアは${Math.floor(score)}点です。`;resultPanel.classList.remove('hidden')}
+function rank(){const a=[player.progress,...npcs.map(n=>n.progress)].sort((a,b)=>b-a);return a.indexOf(player.progress)+1}
+function enemyAhead(){
+ return npcs.some(n=>{const overlap=player.x<n.x+n.w+8&&player.x+player.w+8>n.x;const d=player.y-(n.y+n.h);return overlap&&d>=-8&&d<125})
+}
+function show(text,bg='#111827'){
+ notice.textContent=text;notice.style.background=bg;notice.style.display='block';
+ clearTimeout(show.t);show.t=setTimeout(()=>notice.style.display='none',900);
+}
+function activateBoost(){
+ if(!running||boostEnergy<35||boostCooldown>0||boostTimer>0||itemBoostTimer>0)return;
+ if(enemyAhead()){show('前方に敵車！ 加速できない！','#991b1b');return}
+ boostEnergy-=35;boostTimer=2.2;boostCooldown=1.5;score+=100;show('OVERTAKE!','#b45309')
+}
+function npcBoost(n){if(n.boostCooldown>0||n.boostTimer>0)return;n.boostTimer=2.8;n.boostCooldown=4.2;show('NPCがオーバーテイク！','#1d4ed8')}
+function spawnBox(){
+ const roadL=W*.09+18,roadR=W*.91-42;
+ questionBoxes.push({x:roadL+Math.random()*(roadR-roadL),y:-50,w:42,h:42,used:false})
+}
+function activateRandomItem(){
+ const item=Math.floor(Math.random()*3);
+ if(item===0){
+   let targets=[...npcs].sort((a,b)=>Math.abs(a.y-player.y)-Math.abs(b.y-player.y)).slice(0,2);
+   targets.forEach(n=>{n.stun=2.2;n.boostTimer=0});
+   score+=180;show('💥 爆破アイテム！ NPCを減速！','#7f1d1d')
+ }else if(item===1){
+   itemBoostTimer=3.0;score+=140;show('🚀 加速アイテム！','#065f46')
+ }else{
+   const roadL=W*.09+10,roadR=W*.91-60;
+   roadBlocks.push({x:roadL+Math.random()*(roadR-roadL),y:-80,w:58,h:28,life:8});
+   score+=120;show('⛔ 通行止めアイテム！','#374151')
+ }
+}
+
+function activateNpcItem(n){
+ const item=Math.floor(Math.random()*3);
+ if(item===0){
+   player.stun=Math.max(player.stun,2.2);boostTimer=0;itemBoostTimer=0;
+   npcs.filter(x=>x!==n).forEach(x=>{if(Math.random()<.45){x.stun=Math.max(x.stun,1.4);x.boostTimer=0;x.itemBoostTimer=0}});
+   score=Math.max(0,score-120);show('💥 敵が爆破アイテム！','#7f1d1d');
+ }else if(item===1){
+   n.itemBoostTimer=3.0;n.stun=0;show('🚀 敵が加速アイテム！','#1d4ed8');
+ }else{
+   const roadL=W*.09+10,roadR=W*.91-60;
+   const targetX=Math.max(roadL,Math.min(roadR,player.x+player.w/2-29+(Math.random()-.5)*55));
+   roadBlocks.push({x:targetX,y:-80,w:58,h:28,life:8});
+   show('⛔ 敵が通行止めを設置！','#374151');
+ }
+}
+
+function spawnTruckWarning(){
+ if(truck||truckWarning>0)return;
+ truckWarning=2.6;
+ show('⚠ 暴走トラック接近!!','#7f1d1d');
+ wrap.classList.add('shake');
+ setTimeout(()=>wrap.classList.remove('shake'),650);
+}
+function spawnTruck(){
+ const roadL=W*.09+12,roadR=W*.91-98;
+ truck={
+   x:roadL+Math.random()*Math.max(1,roadR-roadL),
+   y:-230,w:92,h:190,
+   vx:(Math.random()>.5?1:-1)*(25+Math.random()*35),
+   speed:360,
+   smokeTick:0,markTick:0,angle:0,rotating:Math.random()<0.5,rotSpeed:(Math.random()>.5?1:-1)*(5.5+Math.random()*3)
+ };
+ show(truck.rotating?'🚛 回転暴走トラック!!':'🚛 暴走トラック突入！',truck.rotating?'#7c2d12':'#991b1b');
+ wrap.classList.add('shake');
+ setTimeout(()=>wrap.classList.remove('shake'),850);
+}
+function addParticle(type,x,y,count){
+ for(let i=0;i<count;i++){
+   const a=Math.random()*Math.PI*2;
+   const s=type==='spark'?120+Math.random()*300:70+Math.random()*210;
+   particles.push({
+     type,x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-(type==='metal'?70:0),
+     life:type==='spark'?.55+Math.random()*.5:type==='metal'?.8+Math.random()*.7:1.2+Math.random()*1.3,
+     maxLife:type==='spark'?1:type==='metal'?1.5:2.5,
+     size:type==='smoke'?12+Math.random()*18:type==='metal'?5+Math.random()*8:2+Math.random()*4,
+     rot:Math.random()*6.28,vr:(Math.random()-.5)*18
+   });
+ }
+}
+function crashVehicle(v,isPlayer){
+ if((v.stopTimer||0)>0)return;
+ v.spin=2.2;
+ v.stopTimer=3.2;
+ v.stun=3.2;
+ if(isPlayer){
+   boostTimer=0;itemBoostTimer=0;
+   score=Math.max(0,score-300);
+   show('CRASH!! スピンして停止！','#7f1d1d');
+   wrap.classList.add('shake','flash');
+   setTimeout(()=>wrap.classList.remove('shake'),1000);
+   setTimeout(()=>wrap.classList.remove('flash'),260);
+   if(navigator.vibrate) navigator.vibrate([120,60,180]);
+ }
+ const cx=v.x+v.w/2,cy=v.y+v.h/2;
+ addParticle('spark',cx,cy,150);
+ addParticle('metal',cx,cy,30);
+ addParticle('smoke',cx,cy,24);
+}
+function updateTruck(dt){
+ if(!truck){
+   nextTruckTimer-=dt;
+   if(nextTruckTimer<=2.6&&truckWarning<=0)spawnTruckWarning();
+   if(truckWarning>0){
+     truckWarning-=dt;
+     if(truckWarning<=0){spawnTruck();nextTruckTimer=17+Math.random()*9;}
+   }
+   return;
+ }
+ truck.y+=truck.speed*dt;
+ truck.x+=truck.vx*dt;if(truck.rotating)truck.angle+=truck.rotSpeed*dt;
+ const roadL=W*.09+8,roadR=W*.91-truck.w-8;
+ if(truck.x<roadL||truck.x>roadR){truck.vx*=-1;truck.x=Math.max(roadL,Math.min(roadR,truck.x));}
+ truck.smokeTick-=dt;truck.markTick-=dt;
+ if(truck.smokeTick<=0){
+   addParticle('smoke',truck.x+truck.w*.25,truck.y+truck.h*.88,2);
+   addParticle('smoke',truck.x+truck.w*.75,truck.y+truck.h*.88,2);
+   truck.smokeTick=.08;
+ }
+ if(truck.markTick<=0){
+   skidMarks.push({x:truck.x+18,y:truck.y+truck.h-10,life:7});
+   skidMarks.push({x:truck.x+truck.w-24,y:truck.y+truck.h-10,life:7});
+   truck.markTick=.05;
+ }
+ if(rectHit(player,truck)) crashVehicle(player,true);
+ npcs.forEach(n=>{if(rectHit(n,truck))crashVehicle(n,false)});
+ if(truck.y>H+240)truck=null;
+}
+function updateEffects(dt){
+ skidMarks.forEach(m=>m.life-=dt);
+ skidMarks=skidMarks.filter(m=>m.life>0);
+ particles.forEach(p=>{
+   p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
+   if(p.type!=='smoke')p.vy+=260*dt;
+   else{p.vy-=18*dt;p.vx*=.985;}
+ });
+ particles=particles.filter(p=>p.life>0);
+}
+function drawTruck(){
+ if(!truck)return;
+ ctx.save();ctx.translate(truck.x+truck.w/2,truck.y+truck.h/2);ctx.rotate(truck.angle||0);ctx.translate(-truck.w/2,-truck.h/2);
+ ctx.fillStyle='#111827';ctx.fillRect(8,4,truck.w,truck.h);
+ ctx.fillStyle='#991b1b';ctx.beginPath();ctx.roundRect(0,0,truck.w,truck.h,10);ctx.fill();
+ ctx.fillStyle='#cbd5e1';ctx.fillRect(12,20,truck.w-24,45);
+ ctx.fillStyle='#111827';ctx.fillRect(-7,30,10,42);ctx.fillRect(truck.w-3,30,10,42);
+ ctx.fillRect(-7,truck.h-62,10,44);ctx.fillRect(truck.w-3,truck.h-62,10,44);
+ ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(20,10,7,0,Math.PI*2);ctx.arc(truck.w-20,10,7,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='white';ctx.font='bold 18px sans-serif';ctx.textAlign='center';ctx.fillText('暴走',truck.w/2,105);ctx.fillText('TRUCK',truck.w/2,130);
+ ctx.restore();
+}
+function drawEffects(){
+ skidMarks.forEach(m=>{ctx.globalAlpha=Math.max(0,m.life/7)*.72;ctx.fillStyle='#050505';ctx.fillRect(m.x,m.y,7,27)});
+ ctx.globalAlpha=1;
+ particles.forEach(p=>{
+   const a=Math.max(0,p.life/(p.maxLife||1));
+   ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+   if(p.type==='spark'){ctx.fillStyle=Math.random()>.5?'#fde047':'#fb923c';ctx.fillRect(-p.size/2,-p.size/2,p.size*2,p.size/2)}
+   else if(p.type==='metal'){ctx.fillStyle='#cbd5e1';ctx.fillRect(-p.size/2,-2,p.size,4)}
+   else{ctx.fillStyle='rgba(20,20,20,.75)';ctx.beginPath();ctx.arc(0,0,p.size*(1+(1-a)*1.8),0,Math.PI*2);ctx.fill()}
+   ctx.restore();
+ });
+ ctx.globalAlpha=1;
+}
+
+function rectHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function updateHud(){
+ const blocked=enemyAhead();rankEl.textContent=rank()+'位';timeEl.textContent=Math.max(0,180-elapsed).toFixed(1);
+ scoreEl.textContent=Math.floor(score);boostValueEl.textContent=Math.floor(boostEnergy)+'%';boostBar.style.width=boostEnergy+'%';
+ const ready=running&&boostEnergy>=35&&boostCooldown<=0&&!blocked&&!player.stun;
+ boostBtn.disabled=!ready;boostBtn.style.opacity=ready?'1':'.45';
+ if(itemBoostTimer>0){boostBtn.textContent='🚀 アイテム加速中';status.textContent='加速アイテム発動中！'}
+ else if(boostTimer>0){boostBtn.textContent='⚡ 加速中！';status.textContent='オーバーテイク中！'}
+ else if(blocked){boostBtn.textContent='前方車両あり';status.textContent='左右に移動して進路を空けよう。'}
+ else{boostBtn.textContent='⚡ オーバーテイク';status.textContent='はてなボックスから3種類のアイテムが出ます。'}
+}
+function drawCar(x,y,w,h,color,label,boosting,spin=0){
+ ctx.save();ctx.translate(x+w/2,y+h/2);if(spin>0)ctx.rotate((2.2-spin)*11);ctx.translate(-w/2,-h/2);
+ if(boosting){ctx.fillStyle='#f59e0bcc';for(let i=0;i<2;i++){ctx.beginPath();ctx.moveTo(w*(.3+i*.35),h);ctx.lineTo(w*(.4+i*.35),h+25+Math.random()*10);ctx.lineTo(w*(.48+i*.35),h);ctx.fill()}}
+ ctx.fillStyle='#0004';ctx.fillRect(4,5,w,h);ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(0,0,w,h,9);ctx.fill();
+ ctx.fillStyle='#dbeafe';ctx.beginPath();ctx.roundRect(7,12,w-14,20,5);ctx.fill();
+ ctx.fillStyle='#111827';ctx.fillRect(-3,12,5,17);ctx.fillRect(w-2,12,5,17);ctx.fillRect(-3,h-27,5,17);ctx.fillRect(w-2,h-27,5,17);
+ ctx.fillStyle='white';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(label,w/2,h-18);ctx.restore()
+}
+function drawRoad(){
+ ctx.fillStyle='#146b38';ctx.fillRect(0,0,W,H);const x=W*.09,w=W*.82;ctx.fillStyle='#30343a';ctx.fillRect(x,0,w,H);
+ ctx.fillStyle='#fff';ctx.fillRect(x+4,0,4,H);ctx.fillRect(x+w-8,0,4,H);
+ for(let l=1;l<4;l++){const lx=x+w*l/4;for(let y=-60+roadOffset;y<H;y+=80)ctx.fillRect(lx-2,y,4,38)}
+}
+function drawBox(b){
+ ctx.save();ctx.translate(b.x,b.y);ctx.fillStyle='#facc15';ctx.strokeStyle='#92400e';ctx.lineWidth=3;ctx.fillRect(0,0,b.w,b.h);ctx.strokeRect(0,0,b.w,b.h);
+ ctx.fillStyle='#111827';ctx.font='bold 28px sans-serif';ctx.textAlign='center';ctx.fillText('?',b.w/2,31);ctx.restore()
+}
+function drawBlock(b){ctx.fillStyle='#ef4444';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.fillStyle='white';ctx.fillRect(b.x+6,b.y+6,b.w-12,6)}
+function update(dt){
+ elapsed+=dt;boostTimer=Math.max(0,boostTimer-dt);boostCooldown=Math.max(0,boostCooldown-dt);
+ itemBoostTimer=Math.max(0,itemBoostTimer-dt);player.stun=Math.max(0,player.stun-dt);boostEnergy=Math.min(100,boostEnergy+4.5*dt);
+ nextBoxTimer-=dt;if(nextBoxTimer<=0){spawnBox();nextBoxTimer=3.5+Math.random()*2.5}
+ player.spin=Math.max(0,(player.spin||0)-dt);player.stopTimer=Math.max(0,(player.stopTimer||0)-dt);const playerSpeed=player.stopTimer>0?0:player.stun>0?90:itemBoostTimer>0?280:boostTimer>0?245:158;
+ roadOffset=(roadOffset+(itemBoostTimer>0?430:boostTimer>0?390:230)*dt)%80;
+ const roadL=W*.09+10,roadR=W*.91-player.w-10;
+ if(player.stun<=0&&player.stopTimer<=0){if(left)player.x-=player.speed*dt;if(right)player.x+=player.speed*dt}
+ player.x=Math.max(roadL,Math.min(roadR,player.x));player.progress+=playerSpeed*dt;score+=(itemBoostTimer>0?38:boostTimer>0?30:12)*dt;
+
+ questionBoxes.forEach(b=>{b.y+=240*dt;if(!b.used&&rectHit(player,b)){b.used=true;activateRandomItem()}if(!b.used){for(const n of npcs){if(rectHit(n,b)){b.used=true;activateNpcItem(n);break}}}});
+ questionBoxes=questionBoxes.filter(b=>!b.used&&b.y<H+60);
+ roadBlocks.forEach(b=>{b.y+=220*dt;b.life-=dt;if(rectHit(player,b)){player.stun=1.1;b.life=0;show('⛔ 通行止めに衝突！','#7f1d1d')}
+   npcs.forEach(n=>{if(rectHit(n,b)){n.stun=1.8;b.life=0}})
+ });roadBlocks=roadBlocks.filter(b=>b.life>0&&b.y<H+50);
+
+ npcs.forEach(n=>{
+  n.boostTimer=Math.max(0,n.boostTimer-dt);n.itemBoostTimer=Math.max(0,(n.itemBoostTimer||0)-dt);n.boostCooldown=Math.max(0,n.boostCooldown-dt);n.stun=Math.max(0,n.stun-dt);n.spin=Math.max(0,(n.spin||0)-dt);n.stopTimer=Math.max(0,(n.stopTimer||0)-dt);
+  const ahead=n.progress>player.progress,passed=n.wasAhead&&!ahead;if(passed&&Math.random()<.95)npcBoost(n);n.wasAhead=ahead;
+  const ns=n.stopTimer>0?0:n.stun>0?70:n.itemBoostTimer>0?n.baseSpeed+135:n.boostTimer>0?n.baseSpeed+105:n.baseSpeed;n.progress+=ns*dt;n.y+=(playerSpeed-ns)*dt;
+  if(Math.random()<.008)n.targetX=roadL+Math.random()*Math.max(1,roadR-roadL);
+  if(n.boostTimer>0||n.itemBoostTimer>0)n.targetX+=(player.x+player.w/2-(n.x+n.w/2))*.022;
+  n.x+=(n.targetX-n.x)*Math.min(1,dt*1.2);n.x=Math.max(roadL,Math.min(W*.91-n.w-10,n.x));
+  if(n.y>H+80)n.y=-95;if(n.y<-100)n.y=H+70;
+  if(rectHit(player,n)){if(n.boostTimer>0&&boostTimer<=0&&itemBoostTimer<=0){player.progress=Math.max(0,player.progress-90*dt);player.x+=player.x<n.x?-140*dt:140*dt}
+   else{player.progress=Math.max(0,player.progress-55*dt);score=Math.max(0,score-35*dt)}}
+ });
+ updateTruck(dt);updateEffects(dt);updateHud();if(elapsed>=180)finish()
+}
+function draw(){ctx.clearRect(0,0,W,H);drawRoad();drawEffects();questionBoxes.forEach(drawBox);roadBlocks.forEach(drawBlock);drawTruck();
+ npcs.forEach(n=>drawCar(n.x,n.y,n.w,n.h,`hsl(${n.hue} 75% 55%)`,'N',n.boostTimer>0||n.itemBoostTimer>0,n.spin||0));
+ drawCar(player.x,player.y,player.w,player.h,'#e53935','P',boostTimer>0||itemBoostTimer>0,player.spin||0)}
+function loop(now){if(!running)return;const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw();if(running)requestAnimationFrame(loop)}
+function hold(btn,side){const set=v=>side==='l'?left=v:right=v;btn.onpointerdown=e=>{e.preventDefault();set(true);btn.setPointerCapture(e.pointerId)};btn.onpointerup=()=>set(false);btn.onpointercancel=()=>set(false);btn.onlostpointercapture=()=>set(false)}
+hold(document.getElementById('leftBtn'),'l');hold(document.getElementById('rightBtn'),'r');
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')left=true;if(e.key==='ArrowRight')right=true;if(e.key===' '||e.key.toLowerCase()==='x')activateBoost()});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft')left=false;if(e.key==='ArrowRight')right=false});
+boostBtn.onclick=activateBoost;document.getElementById('startBtn').onclick=start;document.getElementById('retryBtn').onclick=start;
+addEventListener('resize',resize);resize();reset();draw();
+})();
+</script>
+</body>
+</html>
