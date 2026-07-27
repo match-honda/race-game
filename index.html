@@ -23,10 +23,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .logo{font-size:34px;font-weight:1000;letter-spacing:-1px;font-style:italic;line-height:.95}.logo span{color:#ff2d82}.sub{font-size:12px;color:#d9dce4;margin:8px 0 12px;letter-spacing:.16em}.heroCar{height:190px;position:relative;margin:0 0 8px;filter:drop-shadow(0 18px 18px #000)}
 .highScore{margin:0 0 10px;padding:9px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,212,64,.16),rgba(255,45,130,.12));border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:900;color:#fff}.highScore strong{color:#ffd84d;font-size:18px;margin-left:6px}.overtakeRule{margin:10px 0 12px;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,45,130,.17),rgba(255,154,67,.14));border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:900;line-height:1.45;color:#fff}.overtakeRule strong{color:#ff7bb1;font-size:15px}.startBtn,.retryBtn{width:100%;height:60px;border:0;border-radius:17px;background:linear-gradient(90deg,#ff2d82,#ff6aa8);font-weight:1000;font-size:21px;color:white;box-shadow:0 0 24px #ff2d8270}.how{font-size:12px;color:#d3d6df;margin-top:11px;line-height:1.55}
 
-.difficulty{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
-.diffBtn{height:44px;border-radius:12px;border:1px solid #ffffff44;background:#111827;color:#fff;font-weight:900;font-size:13px}
-.diffBtn.active{background:linear-gradient(90deg,#ff2d82,#bd185a);box-shadow:0 0 16px #ff2d8260}
-.diffBtn.locked{opacity:.35;filter:grayscale(1)}
+.difficulty{display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px 12px;border-radius:14px;background:#0b1220;border:1px solid #ffffff2e}.difficulty label{font-size:13px;font-weight:950;white-space:nowrap}.difficulty select{flex:1;height:42px;border-radius:11px;border:1px solid #ffffff55;background:#111827;color:#fff;font-size:16px;font-weight:950;padding:0 12px}
 .unlockNote{font-size:11px;color:#cfd4dd;margin:-3px 0 10px}
 @media (max-height:700px){.hudValue{font-size:18px}.hudCard{padding:5px 2px}.progress{top:calc(env(safe-area-inset-top) + 63px)}.controls button{height:64px}.notice{top:calc(env(safe-area-inset-top) + 84px)}.heroCar{height:150px}.startCard{padding:16px}}
 </style>
@@ -52,13 +49,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div class="sub">TOP VIEW · 3D STYLE</div>
   <canvas id="hero" class="heroCar"></canvas>
   <div class="difficulty">
-   <button class="diffBtn active" data-level="1">LEVEL 1</button>
-   <button class="diffBtn" data-level="2">LEVEL 2</button>
-   <button class="diffBtn" data-level="3">LEVEL 3</button>
+   <label for="levelSelect">難易度</label>
+   <select id="levelSelect" aria-label="難易度選択"></select>
   </div>
   <div id="unlockNote" class="unlockNote">1位で次の難易度が解放されます</div>
   <div class="highScore">🏆 最高スコア <strong id="highScore">0</strong></div>
-  <div class="overtakeRule"><strong>オーバーテイクモード</strong><br>10秒間使用できます。使用後は20秒間、再使用できません。<br>このルールはプレイヤーもライバル車も共通です。<br>？ボックスの「巨大化」は4秒間、1.5倍・速度UP・体当たり無敵。</div>
+  <div class="overtakeRule"><strong>オーバーテイクモード</strong><br>10秒間使用できます。使用後は20秒間、再使用できません。<br>このルールはプレイヤーもライバル車も共通です。<br>？ボックスの「巨大化」は8秒間、1.5倍・速度UP・体当たり無敵。</div>
   <button id="startBtn" class="startBtn">レーススタート</button>
   <div class="how">順位争いは4台。周回遅れの車をかわしながら勝利を目指せ。<br>左右ボタンでレーン移動、中央ボタンでオーバーテイクモード。</div>
  </div>
@@ -70,24 +66,33 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 const c=document.getElementById('game'),x=c.getContext('2d'),app=document.getElementById('app');
 const hero=document.getElementById('hero'),hx=hero.getContext('2d');
 const rankEl=document.getElementById('rank'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),energyEl=document.getElementById('energy'),bar=document.getElementById('bar'),notice=document.getElementById('notice'),speedValue=document.getElementById('speedValue'),speedMeter=document.getElementById('speedMeter');
-const diffBtns=[...document.querySelectorAll('.diffBtn')],unlockNote=document.getElementById('unlockNote'),highScoreEl=document.getElementById('highScore');
+const levelSelect=document.getElementById('levelSelect'),unlockNote=document.getElementById('unlockNote'),highScoreEl=document.getElementById('highScore');
 let W=390,H=844,dpr=1,running=false,last=0,t=0,score=0,boost=0,boostCooldown=0,shake=0,crashFlash=0,nextTruck=10,truck=null,roadScroll=0,sceneryScroll=0,nextBox=3,itemBoxes=[];
-let difficulty=1,unlocked=Math.max(1,Math.min(3,Number(localStorage.getItem('formulaUnlocked')||1))),highScore=Math.max(0,Number(localStorage.getItem('formulaHighScore')||0));
+let difficulty=1,unlocked=Math.max(1,Math.min(20,Number(localStorage.getItem('formulaUnlocked')||1))),highScore=Math.max(0,Number(localStorage.getItem('formulaHighScore')||0));
 highScoreEl.textContent=Math.floor(highScore).toLocaleString('ja-JP');
 const duration=180,lanes=4;
 const player={lane:1,x:0,y:0,w:58,h:118,progress:0,speed:164,rank:4,stun:0,shield:0,itemSpeed:0,giant:0,crashSpin:0};
 let rivals=[],traffic=[];
-const settings={
- 1:{rivalSpeed:[163,165,168],reaction:.0032,laneAggro:.84,boostChance:.0052,boostPower:80,catchup:8.5,traffic:5,trafficSpeed:[118,136]},
- 2:{rivalSpeed:[165,168,171],reaction:.0040,laneAggro:.88,boostChance:.0055,boostPower:82,catchup:8.5,traffic:7,trafficSpeed:[122,142]},
- 3:{rivalSpeed:[169,172,176],reaction:.0055,laneAggro:.94,boostChance:.0070,boostPower:88,catchup:10.0,traffic:9,trafficSpeed:[126,148]}
-};
+const settings={};
+for(let lv=1;lv<=20;lv++){
+ const p=(lv-1)/19;
+ settings[lv]={
+  rivalSpeed:[163+lv*.58,165+lv*.70,168+lv*.86],
+  reaction:.0032+p*.0058,
+  laneAggro:.84+p*.14,
+  boostChance:.0052+p*.0068,
+  boostPower:80+p*18,
+  catchup:8.5+p*9.5,
+  traffic:Math.min(13,5+Math.floor((lv-1)/2)),
+  trafficSpeed:[118+lv*.7,136+lv*1.0]
+ };
+}
 function resize(){dpr=Math.min(2,devicePixelRatio||1);W=app.clientWidth;H=app.clientHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);hero.width=330*dpr;hero.height=190*dpr;hx.setTransform(dpr,0,0,dpr,0,0);drawHero();player.y=H-214}
 addEventListener('resize',resize);resize();
 function roadGeom(y){const topY=88,bottomY=H,tt=Math.max(0,Math.min(1,(y-topY)/(bottomY-topY))),e=tt*tt*(3-2*tt);return{cx:W/2,w:W*(.42+e*.48),p:e,topY}}
 function laneX(l,y=H*.6){const g=roadGeom(y);return g.cx-g.w/2+(l+.5)*(g.w/lanes)}
-function updateDifficultyUI(){diffBtns.forEach(b=>{const lv=+b.dataset.level;b.classList.toggle('active',lv===difficulty);b.classList.toggle('locked',lv>unlocked);b.disabled=lv>unlocked});unlockNote.textContent=unlocked<3?'1位で次の難易度が解放されます':'全難易度解放済み'}
-diffBtns.forEach(b=>b.addEventListener('click',()=>{const lv=+b.dataset.level;if(lv<=unlocked){difficulty=lv;updateDifficultyUI()}}));updateDifficultyUI();
+function updateDifficultyUI(){levelSelect.innerHTML='';for(let lv=1;lv<=20;lv++){const o=document.createElement('option');o.value=lv;o.textContent='LEVEL '+lv+(lv>unlocked?' 🔒':'');o.disabled=lv>unlocked;levelSelect.appendChild(o)}if(difficulty>unlocked)difficulty=unlocked;levelSelect.value=String(difficulty);unlockNote.textContent=unlocked<20?'1位でLEVEL '+(unlocked+1)+'が解放されます':'LEVEL 20まで全解放済み'}
+levelSelect.addEventListener('change',()=>{const lv=+levelSelect.value;if(lv<=unlocked){difficulty=lv;updateDifficultyUI()}});updateDifficultyUI();
 function makeRival(i){const cfg=settings[difficulty];return{type:'rival',lane:[0,2,3][i],y:H*(.42+i*.08),progress:[125,80,35][i],speed:cfg.rivalSpeed[i],baseSpeed:cfg.rivalSpeed[i]+(i===2?3.2:i===1?1.2:0),boostTime:0,boostCooldown:0,shield:0,itemSpeed:0,giant:0,color:['#e7bd22','#2c9cf0','#2ec27e'][i],w:52,h:104,ace:i===2,attacker:i>0,attackClock:[10,6.5,3.8][i]+Math.random()*2.5}}
 function makeTraffic(i){const cfg=settings[difficulty];return{type:'traffic',lane:i%lanes,y:-120-i*105,progress:player.progress-(150+i*75),speed:cfg.trafficSpeed[0]+Math.random()*(cfg.trafficSpeed[1]-cfg.trafficSpeed[0]),baseSpeed:0,boostTime:0,boostCooldown:0,shield:0,itemSpeed:0,giant:0,color:['#6b7280','#9ca3af','#7c3aed','#ef4444','#0ea5e9'][i%5],w:44,h:88,lap:true}}
 function reset(){t=0;score=0;boost=0;boostCooldown=0;shake=0;crashFlash=0;nextTruck=10;truck=null;roadScroll=0;sceneryScroll=0;nextBox=3;itemBoxes=[];player.lane=1;player.progress=0;player.stun=0;player.shield=0;player.itemSpeed=0;player.giant=0;player.crashSpin=0;rivals=[0,1,2].map(makeRival);traffic=Array.from({length:settings[difficulty].traffic},(_,i)=>makeTraffic(i));updateHud()}
@@ -95,7 +100,7 @@ function contenders(){return[player,...rivals]}
 function updateHud(){const vals=contenders().sort((a,b)=>b.progress-a.progress);player.rank=vals.indexOf(player)+1;rankEl.textContent=player.rank+'位/4';timeEl.textContent=Math.max(0,duration-t).toFixed(1);scoreEl.textContent=Math.floor(score);const b=document.getElementById('boost');if(boost>0){energyEl.textContent=Math.ceil(boost)+'秒';b.textContent='⚡ モード中 '+Math.ceil(boost);b.classList.remove('cooldown')}else if(boostCooldown>0){energyEl.textContent=Math.ceil(boostCooldown)+'秒';b.textContent='再使用 '+Math.ceil(boostCooldown);b.classList.add('cooldown')}else{energyEl.textContent='READY';b.textContent='⚡ オーバーテイクモード';b.classList.remove('cooldown')}bar.style.width=(Math.max(0,duration-t)/duration*100)+'%'}
 function show(s){notice.textContent=s;notice.classList.add('show');clearTimeout(show.tm);show.tm=setTimeout(()=>notice.classList.remove('show'),1100)}
 function start(){reset();document.getElementById('start').classList.add('hidden');document.getElementById('result').classList.add('hidden');running=true;last=performance.now();requestAnimationFrame(loop)}
-function finish(){running=false;const finalScore=Math.floor(score);let newRecord=false;if(finalScore>highScore){highScore=finalScore;localStorage.setItem('formulaHighScore',String(highScore));highScoreEl.textContent=highScore.toLocaleString('ja-JP');newRecord=true}if(player.rank===1&&difficulty===unlocked&&unlocked<3){unlocked++;localStorage.setItem('formulaUnlocked',String(unlocked));show('LEVEL '+unlocked+' 解放！')}updateDifficultyUI();document.getElementById('resultTitle').textContent=newRecord?'🏆 NEW RECORD!':(player.rank===1?'優勝！':'FINISH');document.getElementById('resultText').textContent=`LEVEL ${difficulty}　最終順位 ${player.rank}位　スコア ${finalScore.toLocaleString('ja-JP')}　最高 ${Math.floor(highScore).toLocaleString('ja-JP')}`;document.getElementById('result').classList.remove('hidden')}
+function finish(){running=false;const finalScore=Math.floor(score);let newRecord=false;if(finalScore>highScore){highScore=finalScore;localStorage.setItem('formulaHighScore',String(highScore));highScoreEl.textContent=highScore.toLocaleString('ja-JP');newRecord=true}if(player.rank===1&&difficulty===unlocked&&unlocked<20){unlocked++;localStorage.setItem('formulaUnlocked',String(unlocked));show('LEVEL '+unlocked+' 解放！')}updateDifficultyUI();document.getElementById('resultTitle').textContent=newRecord?'🏆 NEW RECORD!':(player.rank===1?'優勝！':'FINISH');document.getElementById('resultText').textContent=`LEVEL ${difficulty}　最終順位 ${player.rank}位　スコア ${finalScore.toLocaleString('ja-JP')}　最高 ${Math.floor(highScore).toLocaleString('ja-JP')}`;document.getElementById('result').classList.remove('hidden')}
 function laneClear(car,target,allCars,margin=112){return !allCars.some(o=>o!==car&&o.lane===target&&Math.abs(o.progress-car.progress)<margin)}
 function move(d){if(!running)return;const target=Math.max(0,Math.min(lanes-1,player.lane+d));if(target===player.lane)return;const all=[...rivals,...traffic];if(laneClear(player,target,all,130))player.lane=target;else show('前後の車が近すぎます')}
 function useBoost(){if(!running||boost>0||boostCooldown>0||player.stun>0)return;boost=10;show('オーバーテイクモード 10秒！');if(navigator.vibrate)navigator.vibrate(30)}
@@ -106,7 +111,7 @@ function spawnTruck(){truck={lane:Math.floor(Math.random()*lanes),y:-210,w:92,h:
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.34&&Math.abs(a.y-b.y)<(a.h+b.h)*.34}
 function findSafeLane(car,allCars){let choices=[0,1,2,3].filter(l=>l!==car.lane);choices.sort(()=>Math.random()-.5);for(const l of choices){if(laneClear(car,l,allCars,145))return l}return car.lane}
 function spawnItemBox(){const lane=Math.floor(Math.random()*lanes);itemBoxes.push({lane,progress:player.progress+260+Math.random()*300,y:-80,x:0,w:44,h:44,spin:0})}
-function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=4;if(isPlayer)show('⚡ スピードUP 4秒')}else{car.giant=4;if(isPlayer)show('🔴 巨大化！4秒間・体当たり無敵')}}
+function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=4;if(isPlayer)show('⚡ スピードUP 4秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
 function resolveCarOverlaps(cars){for(let pass=0;pass<2;pass++)for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){const a=cars[i],b=cars[j];if(a.lane!==b.lane||a.giant>0||b.giant>0)continue;const minGap=((a.h||90)+(b.h||90))*.42;const gap=Math.abs(a.progress-b.progress);if(gap<minGap){const lead=a.progress>=b.progress?a:b,trail=lead===a?b:a;trail.progress=lead.progress-minGap;trail.speed=Math.min(trail.speed||0,(lead.speed||0)-2)}}}
 function draftingBonus(car,cars){let nearest=9999;for(const o of cars){if(o===car||o.lane!==car.lane)continue;const gap=o.progress-car.progress;if(gap>48&&gap<235)nearest=Math.min(nearest,gap)}if(nearest===9999)return 0;return 5.5+(235-nearest)/187*4.5}
 function knockAway(big,other){other.progress-=95;other.speed=Math.max(55,(other.speed||130)-45);const options=[big.lane-1,big.lane+1].filter(l=>l>=0&&l<lanes);if(options.length)other.lane=options[Math.floor(Math.random()*options.length)];if(other===player){player.stun=.45;shake=12}else if(big===player){score+=55}}
