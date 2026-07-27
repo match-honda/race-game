@@ -18,7 +18,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .controls button{height:80px;border:none;border-radius:18px;font-size:18px;font-weight:950;color:#fff;background:linear-gradient(180deg,rgba(11,17,29,.96),rgba(4,8,14,.92));border:1px solid #ffffff55;box-shadow:0 10px 24px #000b,inset 0 1px 0 #ffffff1f;backdrop-filter:blur(7px);touch-action:none}
 .controls button:active{transform:scale(.96)}#brake{background:linear-gradient(145deg,#2563eb,#0f2f73);font-size:15px}#brake.active{background:linear-gradient(145deg,#60a5fa,#1d4ed8);box-shadow:0 0 20px #60a5fa88,0 10px 24px #0009}#boost{background:linear-gradient(145deg,#ff2d82,#a90045);font-size:16px;box-shadow:0 0 22px #ff2d8277,0 10px 24px #0009}#boost.cooldown{background:linear-gradient(145deg,#4b5563,#1f2937);box-shadow:0 10px 24px #0009;color:#cbd5e1}
 .speedMeter{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 112px);z-index:23;width:62px;padding:8px 5px;border-radius:13px;background:linear-gradient(180deg,rgba(7,12,20,.92),rgba(3,6,11,.82));border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 20px #0009;text-align:center;color:#fff;backdrop-filter:blur(7px)}.speedMeter .n{font-size:22px;font-weight:1000;line-height:1;color:#ff4c91}.speedMeter .u{font-size:9px;font-weight:900;letter-spacing:.08em;margin-top:3px;color:#d8dde6}.speedMeter.draft{box-shadow:0 0 20px #42d9ff99,0 8px 20px #0009;border-color:#63e6ff}.speedMeter.draft:after{content:"SLIP";display:block;font-size:8px;color:#7eeaff;font-weight:1000;margin-top:3px}.notice{position:absolute;top:calc(env(safe-area-inset-top) + 96px);left:50%;transform:translateX(-50%);z-index:24;background:#9f1e16ed;color:#fff;border:1px solid #ff766a;padding:9px 14px;border-radius:999px;font-weight:950;white-space:nowrap;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 8px 20px #0008}.notice.show{opacity:1}
-.start,.result{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(180deg,rgba(2,6,12,.12),rgba(2,5,10,.92))}.hidden{display:none}
+.countdown{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.34);pointer-events:none}.countdown.hidden{display:none}.signalBox{min-width:270px;padding:22px 20px 18px;border-radius:24px;background:linear-gradient(180deg,rgba(5,8,14,.96),rgba(10,14,22,.94));border:1px solid #ffffff44;box-shadow:0 24px 70px #000d;text-align:center;color:#fff}.signalTitle{font-size:13px;font-weight:950;letter-spacing:.18em;color:#d9dee8;margin-bottom:14px}.lights{display:flex;justify-content:center;gap:10px}.light{width:34px;height:34px;border-radius:50%;background:#2a2f38;border:3px solid #080a0f;box-shadow:inset 0 0 8px #000,0 0 0 1px #ffffff20}.light.on{background:#ff2424;box-shadow:inset 0 0 7px #fff8,0 0 20px #ff2424}.countText{height:58px;margin-top:8px;font-size:46px;line-height:58px;font-weight:1000;font-style:italic;text-shadow:0 4px 12px #000}.countText.go{color:#7dff7a;font-size:50px;text-shadow:0 0 22px #25ff63,0 4px 12px #000}.start,.result{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(180deg,rgba(2,6,12,.12),rgba(2,5,10,.92))}.hidden{display:none}
 .startCard,.resultCard{width:min(92vw,430px);border-radius:26px;padding:20px;background:linear-gradient(160deg,rgba(8,13,23,.96),rgba(15,19,30,.94));border:1px solid #ffffff38;color:#fff;box-shadow:0 24px 80px #000c;text-align:center;backdrop-filter:blur(12px)}
 .logo{font-size:34px;font-weight:1000;letter-spacing:-1px;font-style:italic;line-height:.95}.logo span{color:#ff2d82}.sub{font-size:12px;color:#d9dce4;margin:8px 0 12px;letter-spacing:.16em}.heroCar{height:190px;position:relative;margin:0 0 8px;filter:drop-shadow(0 18px 18px #000)}
 .highScore{margin:0 0 10px;padding:9px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,212,64,.16),rgba(255,45,130,.12));border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:900;color:#fff}.highScore strong{color:#ffd84d;font-size:18px;margin-left:6px}.overtakeRule{margin:10px 0 12px;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,45,130,.17),rgba(255,154,67,.14));border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:900;line-height:1.45;color:#fff}.overtakeRule strong{color:#ff7bb1;font-size:15px}.startBtn,.retryBtn{width:100%;height:60px;border:0;border-radius:17px;background:linear-gradient(90deg,#ff2d82,#ff6aa8);font-weight:1000;font-size:21px;color:white;box-shadow:0 0 24px #ff2d8270}.how{font-size:12px;color:#d3d6df;margin-top:11px;line-height:1.55}
@@ -40,6 +40,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <div class="progress"><i id="bar"></i></div>
 <div id="speedMeter" class="speedMeter"><div id="speedValue" class="n">0</div><div class="u">km/h</div></div>
 <div id="notice" class="notice"></div>
+<div id="countdown" class="countdown hidden" aria-live="assertive">
+ <div class="signalBox">
+  <div class="signalTitle">RACE START</div>
+  <div class="lights"><i class="light"></i><i class="light"></i><i class="light"></i><i class="light"></i><i class="light"></i></div>
+  <div id="countText" class="countText"></div>
+ </div>
+</div>
 <div class="controls">
  <button id="left">◀ 左</button><button id="boost">⚡ オーバーテイクモード</button><button id="right">右 ▶</button>
 </div>
@@ -54,7 +61,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   </div>
   <div id="unlockNote" class="unlockNote">1位で次の難易度が解放されます</div>
   <div class="highScore">🏆 最高スコア <strong id="highScore">0</strong></div>
-  <div class="overtakeRule"><strong>オーバーテイクモード</strong><br>10秒間使用できます。使用後は20秒間、再使用できません。<br>このルールはプレイヤーもライバル車も共通です。<br>？ボックスの「巨大化」は8秒間、1.5倍・速度UP・体当たり無敵。</div>
+  <div class="overtakeRule"><strong>オーバーテイクモード</strong><br>10秒間使用できます。使用後は20秒間、再使用できません。<br>このルールはプレイヤーもライバル車も共通です。<br>？ボックスの「巨大化」と「スピードUP」は8秒間。巨大化中は1.5倍・速度UP・体当たり無敵。</div>
   <button id="startBtn" class="startBtn">レーススタート</button>
   <div class="how">4台で順位を争います。<br>左右でレーン移動、オーバーテイクモードで一気に追い抜け。</div>
  </div>
@@ -66,7 +73,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 const c=document.getElementById('game'),x=c.getContext('2d'),app=document.getElementById('app');
 const hero=document.getElementById('hero'),hx=hero.getContext('2d');
 const rankEl=document.getElementById('rank'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),energyEl=document.getElementById('energy'),bar=document.getElementById('bar'),notice=document.getElementById('notice'),speedValue=document.getElementById('speedValue'),speedMeter=document.getElementById('speedMeter');
-const levelSelect=document.getElementById('levelSelect'),unlockNote=document.getElementById('unlockNote'),highScoreEl=document.getElementById('highScore');
+const levelSelect=document.getElementById('levelSelect'),unlockNote=document.getElementById('unlockNote'),highScoreEl=document.getElementById('highScore'),countdownEl=document.getElementById('countdown'),countText=document.getElementById('countText'),signalLights=[...document.querySelectorAll('.light')];
 let W=390,H=844,dpr=1,running=false,last=0,t=0,score=0,boost=0,boostCooldown=0,shake=0,crashFlash=0,nextTruck=10,truck=null,roadScroll=0,sceneryScroll=0,nextBox=3,itemBoxes=[],braking=false,curveStrength=0,curveTarget=0,curveDir=0,curveSafeSpeed=230,curvePenaltyClock=0;
 let difficulty=1,unlocked=Math.max(1,Math.min(20,Number(localStorage.getItem('formulaUnlocked')||1))),highScore=Math.max(0,Number(localStorage.getItem('formulaHighScore')||0));
 highScoreEl.textContent=Math.floor(highScore).toLocaleString('ja-JP');
@@ -99,7 +106,23 @@ function reset(){t=0;score=0;boost=0;boostCooldown=0;shake=0;crashFlash=0;nextTr
 function contenders(){return[player,...rivals]}
 function updateHud(){const vals=contenders().sort((a,b)=>b.progress-a.progress);player.rank=vals.indexOf(player)+1;rankEl.textContent=player.rank+'位/4';timeEl.textContent=Math.max(0,duration-t).toFixed(1);scoreEl.textContent=Math.floor(score);const b=document.getElementById('boost');if(boost>0){energyEl.textContent=Math.ceil(boost)+'秒';b.textContent='⚡ モード中 '+Math.ceil(boost);b.classList.remove('cooldown')}else if(boostCooldown>0){energyEl.textContent=Math.ceil(boostCooldown)+'秒';b.textContent='再使用 '+Math.ceil(boostCooldown);b.classList.add('cooldown')}else{energyEl.textContent='READY';b.textContent='⚡ オーバーテイクモード';b.classList.remove('cooldown')}bar.style.width=(Math.max(0,duration-t)/duration*100)+'%'}
 function show(s){notice.textContent=s;notice.classList.add('show');clearTimeout(show.tm);show.tm=setTimeout(()=>notice.classList.remove('show'),1100)}
-function start(){reset();document.getElementById('start').classList.add('hidden');document.getElementById('result').classList.add('hidden');running=true;last=performance.now();requestAnimationFrame(loop)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function start(){
+ if(running||!countdownEl.classList.contains('hidden'))return;
+ reset();document.getElementById('start').classList.add('hidden');document.getElementById('result').classList.add('hidden');
+ countdownEl.classList.remove('hidden');countText.className='countText';countText.textContent='';signalLights.forEach(l=>l.classList.remove('on'));
+ for(let i=0;i<5;i++){
+  signalLights[i].classList.add('on');countText.textContent=String(5-i);
+  if(navigator.vibrate)navigator.vibrate(35);
+  await sleep(650);
+ }
+ await sleep(350);
+ signalLights.forEach(l=>l.classList.remove('on'));countText.textContent='GO!';countText.className='countText go';
+ if(navigator.vibrate)navigator.vibrate([40,30,80]);
+ await sleep(650);
+ countdownEl.classList.add('hidden');countText.textContent='';countText.className='countText';
+ running=true;last=performance.now();requestAnimationFrame(loop)
+}
 function finish(){running=false;const finalScore=Math.floor(score);let newRecord=false;if(finalScore>highScore){highScore=finalScore;localStorage.setItem('formulaHighScore',String(highScore));highScoreEl.textContent=highScore.toLocaleString('ja-JP');newRecord=true}if(player.rank===1&&difficulty===unlocked&&unlocked<20){unlocked++;localStorage.setItem('formulaUnlocked',String(unlocked));show('LEVEL '+unlocked+' 解放！')}updateDifficultyUI();document.getElementById('resultTitle').textContent=newRecord?'🏆 NEW RECORD!':(player.rank===1?'優勝！':'FINISH');document.getElementById('resultText').textContent=`LEVEL ${difficulty}　最終順位 ${player.rank}位　スコア ${finalScore.toLocaleString('ja-JP')}　最高 ${Math.floor(highScore).toLocaleString('ja-JP')}`;document.getElementById('result').classList.remove('hidden')}
 function laneClear(car,target,allCars,margin=112){return !allCars.some(o=>o!==car&&o.lane===target&&Math.abs(o.progress-car.progress)<margin)}
 function move(d){if(!running)return;const target=Math.max(0,Math.min(lanes-1,player.lane+d));if(target===player.lane)return;const all=[...rivals,...traffic];if(laneClear(player,target,all,130))player.lane=target;else show('前後の車が近すぎます')}
@@ -111,7 +134,7 @@ function spawnTruck(){truck={lane:Math.floor(Math.random()*lanes),y:-210,w:92,h:
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.34&&Math.abs(a.y-b.y)<(a.h+b.h)*.34}
 function findSafeLane(car,allCars){let choices=[0,1,2,3].filter(l=>l!==car.lane);choices.sort(()=>Math.random()-.5);for(const l of choices){if(laneClear(car,l,allCars,145))return l}return car.lane}
 function spawnItemBox(){const lane=Math.floor(Math.random()*lanes);itemBoxes.push({lane,progress:player.progress+260+Math.random()*300,y:-80,x:0,w:44,h:44,spin:0})}
-function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=4;if(isPlayer)show('⚡ スピードUP 4秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
+function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=8;if(isPlayer)show('⚡ スピードUP 8秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
 function resolveCarOverlaps(cars){for(let pass=0;pass<2;pass++)for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){const a=cars[i],b=cars[j];if(a.lane!==b.lane||a.giant>0||b.giant>0)continue;const minGap=((a.h||90)+(b.h||90))*.42;const gap=Math.abs(a.progress-b.progress);if(gap<minGap){const lead=a.progress>=b.progress?a:b,trail=lead===a?b:a;trail.progress=lead.progress-minGap;trail.speed=Math.min(trail.speed||0,(lead.speed||0)-2)}}}
 function draftingBonus(car,cars){let nearest=9999;for(const o of cars){if(o===car||o.lane!==car.lane)continue;const gap=o.progress-car.progress;if(gap>48&&gap<235)nearest=Math.min(nearest,gap)}if(nearest===9999)return 0;return 5.5+(235-nearest)/187*4.5}
 function knockAway(big,other){other.progress-=95;other.speed=Math.max(55,(other.speed||130)-45);const options=[big.lane-1,big.lane+1].filter(l=>l>=0&&l<lanes);if(options.length)other.lane=options[Math.floor(Math.random()*options.length)];if(other===player){player.stun=.45;shake=12}else if(big===player){score+=55}}
