@@ -17,7 +17,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .controls{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 12px);display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:8px;z-index:30}
 .controls button{height:80px;border:none;border-radius:18px;font-size:18px;font-weight:950;color:#fff;background:linear-gradient(180deg,rgba(11,17,29,.96),rgba(4,8,14,.92));border:1px solid #ffffff55;box-shadow:0 10px 24px #000b,inset 0 1px 0 #ffffff1f;backdrop-filter:blur(7px);touch-action:none}
 .controls button:active{transform:scale(.96)}#brake{background:linear-gradient(145deg,#2563eb,#0f2f73);font-size:15px}#brake.active{background:linear-gradient(145deg,#60a5fa,#1d4ed8);box-shadow:0 0 20px #60a5fa88,0 10px 24px #0009}#boost{background:linear-gradient(145deg,#ff2d82,#a90045);font-size:16px;box-shadow:0 0 22px #ff2d8277,0 10px 24px #0009}#boost.cooldown{background:linear-gradient(145deg,#4b5563,#1f2937);box-shadow:0 10px 24px #0009;color:#cbd5e1}
-.speedMeter{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 112px);z-index:23;width:62px;padding:8px 5px;border-radius:13px;background:linear-gradient(180deg,rgba(7,12,20,.92),rgba(3,6,11,.82));border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 20px #0009;text-align:center;color:#fff;backdrop-filter:blur(7px)}.speedMeter .n{font-size:22px;font-weight:1000;line-height:1;color:#ff4c91}.speedMeter .u{font-size:9px;font-weight:900;letter-spacing:.08em;margin-top:3px;color:#d8dde6}.speedMeter.draft{box-shadow:0 0 20px #42d9ff99,0 8px 20px #0009;border-color:#63e6ff}.speedMeter.draft:after{content:"SLIP";display:block;font-size:8px;color:#7eeaff;font-weight:1000;margin-top:3px}.notice{position:absolute;top:calc(env(safe-area-inset-top) + 96px);left:50%;transform:translateX(-50%);z-index:24;background:#9f1e16ed;color:#fff;border:1px solid #ff766a;padding:9px 14px;border-radius:999px;font-weight:950;white-space:nowrap;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 8px 20px #0008}.notice.show{opacity:1}
+.speedMeter{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 112px);z-index:23;width:62px;padding:8px 5px;border-radius:13px;background:linear-gradient(180deg,rgba(7,12,20,.92),rgba(3,6,11,.82));border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 20px #0009;text-align:center;color:#fff;backdrop-filter:blur(7px)}.speedMeter .n{font-size:22px;font-weight:1000;line-height:1;color:#ff4c91}.speedMeter .u{font-size:9px;font-weight:900;letter-spacing:.08em;margin-top:3px;color:#d8dde6}.speedMeter.draft{box-shadow:0 0 20px #42d9ff99,0 8px 20px #0009;border-color:#63e6ff}.speedMeter.draft:after{content:"SLIP";display:block;font-size:8px;color:#7eeaff;font-weight:1000;margin-top:3px}.durabilityMeter{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 196px);z-index:23;width:92px;padding:8px 7px;border-radius:13px;background:linear-gradient(180deg,rgba(7,12,20,.92),rgba(3,6,11,.82));border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 20px #0009;color:#fff;backdrop-filter:blur(7px)}.durabilityMeter .label{font-size:9px;font-weight:900;letter-spacing:.08em;color:#d8dde6;text-align:center}.durabilityMeter .value{font-size:20px;font-weight:1000;line-height:1.1;text-align:center;margin:2px 0 5px}.durabilityBar{height:7px;border-radius:99px;background:#ffffff2e;overflow:hidden}.durabilityBar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#a3e635);transition:width .18s}.durabilityMeter.danger{border-color:#ff4d4d;box-shadow:0 0 18px #ff2d2d88,0 8px 20px #0009}.durabilityMeter.danger .value{color:#ff5c5c}.durabilityMeter.broken .value{color:#ff2d82}.notice{position:absolute;top:calc(env(safe-area-inset-top) + 96px);left:50%;transform:translateX(-50%);z-index:24;background:#9f1e16ed;color:#fff;border:1px solid #ff766a;padding:9px 14px;border-radius:999px;font-weight:950;white-space:nowrap;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 8px 20px #0008}.notice.show{opacity:1}
 .countdown{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.34);pointer-events:none}.countdown.hidden{display:none}.signalBox{min-width:270px;padding:22px 20px 18px;border-radius:24px;background:linear-gradient(180deg,rgba(5,8,14,.96),rgba(10,14,22,.94));border:1px solid #ffffff44;box-shadow:0 24px 70px #000d;text-align:center;color:#fff}.signalTitle{font-size:13px;font-weight:950;letter-spacing:.18em;color:#d9dee8;margin-bottom:14px}.lights{display:flex;justify-content:center;gap:10px}.light{width:34px;height:34px;border-radius:50%;background:#2a2f38;border:3px solid #080a0f;box-shadow:inset 0 0 8px #000,0 0 0 1px #ffffff20}.light.on{background:#ff2424;box-shadow:inset 0 0 7px #fff8,0 0 20px #ff2424}.countText{height:58px;margin-top:8px;font-size:46px;line-height:58px;font-weight:1000;font-style:italic;text-shadow:0 4px 12px #000}.countText.go{color:#7dff7a;font-size:50px;text-shadow:0 0 22px #25ff63,0 4px 12px #000}.start,.result{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(180deg,rgba(2,6,12,.12),rgba(2,5,10,.92))}.hidden{display:none}
 .startCard,.resultCard{width:min(92vw,430px);border-radius:26px;padding:20px;background:linear-gradient(160deg,rgba(8,13,23,.96),rgba(15,19,30,.94));border:1px solid #ffffff38;color:#fff;box-shadow:0 24px 80px #000c;text-align:center;backdrop-filter:blur(12px)}
 .logo{font-size:34px;font-weight:1000;letter-spacing:-1px;font-style:italic;line-height:.95}.logo span{color:#ff2d82}.sub{font-size:12px;color:#d9dce4;margin:8px 0 12px;letter-spacing:.16em}.heroCar{height:190px;position:relative;margin:0 0 8px;filter:drop-shadow(0 18px 18px #000)}
@@ -39,6 +39,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 </div>
 <div class="progress"><i id="bar"></i></div>
 <div id="speedMeter" class="speedMeter"><div id="speedValue" class="n">0</div><div class="u">km/h</div></div>
+<div id="durabilityMeter" class="durabilityMeter"><div class="label">耐久性</div><div id="durabilityValue" class="value">100%</div><div class="durabilityBar"><i id="durabilityBar"></i></div></div>
 <div id="notice" class="notice"></div>
 <div id="countdown" class="countdown hidden" aria-live="assertive">
  <div class="signalBox">
@@ -72,13 +73,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 (()=>{
 const c=document.getElementById('game'),x=c.getContext('2d'),app=document.getElementById('app');
 const hero=document.getElementById('hero'),hx=hero.getContext('2d');
-const rankEl=document.getElementById('rank'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),energyEl=document.getElementById('energy'),bar=document.getElementById('bar'),notice=document.getElementById('notice'),speedValue=document.getElementById('speedValue'),speedMeter=document.getElementById('speedMeter');
+const rankEl=document.getElementById('rank'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),energyEl=document.getElementById('energy'),bar=document.getElementById('bar'),notice=document.getElementById('notice'),speedValue=document.getElementById('speedValue'),speedMeter=document.getElementById('speedMeter'),durabilityMeter=document.getElementById('durabilityMeter'),durabilityValue=document.getElementById('durabilityValue'),durabilityBar=document.getElementById('durabilityBar');
 const levelSelect=document.getElementById('levelSelect'),unlockNote=document.getElementById('unlockNote'),highScoreEl=document.getElementById('highScore'),countdownEl=document.getElementById('countdown'),countText=document.getElementById('countText'),signalLights=[...document.querySelectorAll('.light')];
 let W=390,H=844,dpr=1,running=false,last=0,t=0,score=0,boost=0,boostCooldown=0,shake=0,crashFlash=0,nextTruck=10,truck=null,roadScroll=0,sceneryScroll=0,nextBox=3,itemBoxes=[],braking=false,curveStrength=0,curveTarget=0,curveDir=0,curveSafeSpeed=230,curvePenaltyClock=0;
 let difficulty=1,unlocked=Math.max(1,Math.min(20,Number(localStorage.getItem('formulaUnlocked')||1))),highScore=Math.max(0,Number(localStorage.getItem('formulaHighScore')||0));
 highScoreEl.textContent=Math.floor(highScore).toLocaleString('ja-JP');
 const duration=180,lanes=4;
-const player={lane:1,visualLane:1,x:0,y:0,w:52,h:106,progress:0,prevProgress:0,speed:164,rank:4,stun:0,shield:0,itemSpeed:0,giant:0,crashSpin:0,draftHold:0,draftPower:0};
+const player={lane:1,visualLane:1,x:0,y:0,w:52,h:106,progress:0,prevProgress:0,speed:164,rank:4,stun:0,shield:0,itemSpeed:0,giant:0,crashSpin:0,draftHold:0,draftPower:0,durability:100,damageCooldown:0};
 let rivals=[],traffic=[];
 const settings={};
 for(let lv=1;lv<=20;lv++){
@@ -102,10 +103,12 @@ function updateDifficultyUI(){levelSelect.innerHTML='';for(let lv=1;lv<=20;lv++)
 levelSelect.addEventListener('change',()=>{const lv=+levelSelect.value;if(lv<=unlocked){difficulty=lv;updateDifficultyUI()}});updateDifficultyUI();
 function makeRival(i){const cfg=settings[difficulty];const startRanks=[1,2,3];const rank=startRanks[i];const lane=[1,3,0][i]??i%lanes;const speed=cfg.rivalSpeedBase+(4-rank)*1.15+(i%3)*.45;const palette=['#e7bd22','#2c9cf0','#2ec27e'];return{type:'rival',lane,visualLane:lane,y:H*(.28+i*.09),progress:(4-rank)*72,prevProgress:(4-rank)*72,speed,baseSpeed:speed,boostTime:0,boostCooldown:0,shield:0,itemSpeed:0,giant:0,color:palette[i],w:44,h:88,ace:i===0,attacker:true,attackClock:4+i*.9+Math.random()*2.5,draftHold:0,draftPower:0}}
 function makeTraffic(i){const cfg=settings[difficulty];return{type:'traffic',lane:i%lanes,visualLane:i%lanes,y:-120-i*105,progress:player.progress-(180+i*90),prevProgress:player.progress-(180+i*90),speed:cfg.trafficSpeed[0]+Math.random()*(cfg.trafficSpeed[1]-cfg.trafficSpeed[0]),baseSpeed:0,boostTime:0,boostCooldown:0,shield:0,itemSpeed:0,giant:0,color:['#6b7280','#9ca3af','#7c3aed','#ef4444','#0ea5e9'][i%5],w:38,h:76,lap:true,draftHold:0,draftPower:0}}
-function reset(){t=0;score=0;boost=0;boostCooldown=0;shake=0;crashFlash=0;nextTruck=10;truck=null;roadScroll=0;sceneryScroll=0;nextBox=3;itemBoxes=[];braking=false;curveStrength=0;curveTarget=0;curveDir=0;curvePenaltyClock=0;player.lane=1;player.visualLane=1;player.progress=0;player.prevProgress=0;player.stun=0;player.shield=0;player.itemSpeed=0;player.giant=0;player.crashSpin=0;player.draftHold=0;player.draftPower=0;rivals=Array.from({length:3},(_,i)=>makeRival(i));traffic=Array.from({length:Math.max(2,Math.floor(settings[difficulty].traffic*.45))},(_,i)=>makeTraffic(i));updateHud()}
+function reset(){t=0;score=0;boost=0;boostCooldown=0;shake=0;crashFlash=0;nextTruck=10;truck=null;roadScroll=0;sceneryScroll=0;nextBox=3;itemBoxes=[];braking=false;curveStrength=0;curveTarget=0;curveDir=0;curvePenaltyClock=0;player.lane=1;player.visualLane=1;player.progress=0;player.prevProgress=0;player.stun=0;player.shield=0;player.itemSpeed=0;player.giant=0;player.crashSpin=0;player.draftHold=0;player.draftPower=0;player.durability=100;player.damageCooldown=0;rivals=Array.from({length:3},(_,i)=>makeRival(i));traffic=Array.from({length:Math.max(2,Math.floor(settings[difficulty].traffic*.45))},(_,i)=>makeTraffic(i));updateHud()}
 function contenders(){return[player,...rivals]}
-function updateHud(){const vals=contenders().sort((a,b)=>b.progress-a.progress);player.rank=vals.indexOf(player)+1;rankEl.textContent=player.rank+'位/4';timeEl.textContent=Math.max(0,duration-t).toFixed(1);scoreEl.textContent=Math.floor(score);const b=document.getElementById('boost');if(boost>0){energyEl.textContent=Math.ceil(boost)+'秒';b.textContent='⚡ モード中 '+Math.ceil(boost);b.classList.remove('cooldown')}else if(boostCooldown>0){energyEl.textContent=Math.ceil(boostCooldown)+'秒';b.textContent='再使用 '+Math.ceil(boostCooldown);b.classList.add('cooldown')}else{energyEl.textContent='READY';b.textContent='⚡ オーバーテイクモード';b.classList.remove('cooldown')}bar.style.width=(Math.max(0,duration-t)/duration*100)+'%'}
+function updateHud(){const vals=contenders().sort((a,b)=>b.progress-a.progress);player.rank=vals.indexOf(player)+1;rankEl.textContent=player.rank+'位/4';timeEl.textContent=Math.max(0,duration-t).toFixed(1);scoreEl.textContent=Math.floor(score);const b=document.getElementById('boost');if(boost>0){energyEl.textContent=Math.ceil(boost)+'秒';b.textContent='⚡ モード中 '+Math.ceil(boost);b.classList.remove('cooldown')}else if(boostCooldown>0){energyEl.textContent=Math.ceil(boostCooldown)+'秒';b.textContent='再使用 '+Math.ceil(boostCooldown);b.classList.add('cooldown')}else{energyEl.textContent='READY';b.textContent='⚡ オーバーテイクモード';b.classList.remove('cooldown')}bar.style.width=(Math.max(0,duration-t)/duration*100)+'%';durabilityValue.textContent=Math.max(0,Math.round(player.durability))+'%';durabilityBar.style.width=Math.max(0,player.durability)+'%';durabilityBar.style.background=player.durability<=30?'linear-gradient(90deg,#ef4444,#ff2d82)':player.durability<=60?'linear-gradient(90deg,#f59e0b,#facc15)':'linear-gradient(90deg,#22c55e,#a3e635)';durabilityMeter.classList.toggle('danger',player.durability<=30&&player.durability>0);durabilityMeter.classList.toggle('broken',player.durability<=0)}
 function show(s){notice.textContent=s;notice.classList.add('show');clearTimeout(show.tm);show.tm=setTimeout(()=>notice.classList.remove('show'),1100)}
+function damagePlayer(amount=10,label='接触'){if(player.shield>0||player.giant>0||player.damageCooldown>0)return;player.durability=Math.max(0,player.durability-amount);player.damageCooldown=.8;shake=Math.max(shake,10);crashFlash=Math.max(crashFlash,.18);if(player.durability<=0)show('⚠ 耐久性0%！最高速度70%');else show('💥 '+label+'　耐久性 -'+amount+'%')}
+function carsTouch(a,b){const az=a.giant>0?1.5:1,bz=b.giant>0?1.5:1;return Math.abs(a.x-b.x)<((a.w*az+b.w*bz)*.43)&&Math.abs(a.y-b.y)<((a.h*az+b.h*bz)*.43)}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function start(){
  if(running||!countdownEl.classList.contains('hidden'))return;
@@ -170,31 +173,52 @@ function findSafeLane(car,allCars){
 function spawnItemBox(){const lane=Math.floor(Math.random()*lanes);itemBoxes.push({lane,progress:player.progress+260+Math.random()*300,y:-80,x:0,w:44,h:44,spin:0})}
 function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=8;if(isPlayer)show('⚡ スピードUP 8秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
 function resolveCarOverlaps(cars){
- // Run several passes so no rival can tunnel through another car in one frame.
- for(let pass=0;pass<5;pass++){
+ // Judge collisions by the cars' actual on-screen rectangles.
+ // This is important on tall phones because the player is fixed near the bottom,
+ // while rival Y positions are calculated from race progress.
+ for(let pass=0;pass<8;pass++){
+  let corrected=false;
   for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
    const a=cars[i],b=cars[j];
-   if(a.giant>0||b.giant>0)continue;
-   const ax=a.x||laneX(a.visualLane??a.lane,a.y),bx=b.x||laneX(b.visualLane??b.lane,b.y);
-   const lateral=Math.abs(ax-bx);
-   const lateralLimit=((a.w||44)+(b.w||44))*.46;
-   if(lateral>=lateralLimit)continue;
-   const minGap=progressCollisionGap(a,b,4);
-   const aPrev=a.prevProgress??a.progress,bPrev=b.prevProgress??b.progress;
-   const aCrossed=aPrev<bPrev&&a.progress>=b.progress;
-   const bCrossed=bPrev<aPrev&&b.progress>=a.progress;
-   if(aCrossed){
-    a.progress=b.progress-minGap;
-    a.speed=Math.min(a.speed||0,Math.max(0,(b.speed||0)-1));
-   }else if(bCrossed){
-    b.progress=a.progress-minGap;
-    b.speed=Math.min(b.speed||0,Math.max(0,(a.speed||0)-1));
-   }else if(Math.abs(a.progress-b.progress)<minGap){
-    const lead=a.progress>=b.progress?a:b,trail=lead===a?b:a;
-    trail.progress=lead.progress-minGap;
-    trail.speed=Math.min(trail.speed||0,Math.max(0,(lead.speed||0)-1));
+   const as=a.giant>0?1.5:1,bs=b.giant>0?1.5:1;
+   const aw=(a.w||44)*as,bw=(b.w||44)*bs;
+   const ah=(a.h||88)*as,bh=(b.h||88)*bs;
+   const ax=a.x??laneX(a.visualLane??a.lane,a.y);
+   const bx=b.x??laneX(b.visualLane??b.lane,b.y);
+   const lateralLimit=(aw+bw)*.42;
+   if(Math.abs(ax-bx)>=lateralLimit)continue;
+
+   const requiredY=(ah+bh)*.44+5;
+   const dy=Math.abs((a.y||0)-(b.y||0));
+   if(dy>=requiredY)continue;
+
+   corrected=true;
+   const ahead=(a.y||0)<(b.y||0)?a:b;
+   const behind=ahead===a?b:a;
+   const push=(requiredY-dy+2)/1.45;
+
+   // Keep the player at the fixed control position. Move the enemy instead.
+   if(behind===player){
+    ahead.progress+=push;
+    ahead.speed=Math.max(ahead.speed||0,(player.speed||164)+1);
+   }else{
+    behind.progress-=push;
+    behind.speed=Math.min(behind.speed||0,Math.max(0,(ahead.speed||0)-2));
+   }
+
+   if(behind===player&&player.shield<=0){
+    player.stun=Math.max(player.stun,.08);
+    score=Math.max(0,score-2);
    }
   }
+
+  // Refresh positions immediately so the next pass sees the corrected rectangles.
+  for(const car of cars){
+   if(car===player){car.y=H-214}
+   else car.y=H*.56-(car.progress-player.progress)*1.45;
+   updateLanePosition(car,0);
+  }
+  if(!corrected)break;
  }
 }
 function updateLanePosition(car,dt){
@@ -261,12 +285,12 @@ function update(dt){
  updateCurve(dt);
  roadScroll=(roadScroll+(260+(boost?150:0))*dt)%140;sceneryScroll=(sceneryScroll+(210+(boost?120:0))*dt)%180;
  if(boost>0){boost=Math.max(0,boost-dt);if(boost===0)boostCooldown=20}else boostCooldown=Math.max(0,boostCooldown-dt);
- player.stun=Math.max(0,player.stun-dt);player.shield=Math.max(0,player.shield-dt);player.itemSpeed=Math.max(0,player.itemSpeed-dt);player.giant=Math.max(0,player.giant-dt);
+ player.stun=Math.max(0,player.stun-dt);player.damageCooldown=Math.max(0,player.damageCooldown-dt);player.shield=Math.max(0,player.shield-dt);player.itemSpeed=Math.max(0,player.itemSpeed-dt);player.giant=Math.max(0,player.giant-dt);
  const cfg=settings[difficulty];
  const allNPC=[...rivals,...traffic];
  [player,...allNPC].forEach(car=>car.prevProgress=car.progress);
  const draft=draftingBonus(player,[player,...allNPC],dt);
- let ps=(player.stun?60:164)+(boost?86:0)+(player.itemSpeed?58:0)+(player.giant?28:0)+draft;const curveLoad=Math.abs(curveStrength);if(curveLoad>.18){const safe=curveSafeSpeed-(difficulty-1)*1.8;const display=ps*1.55;if(display>safe){const drift=(display-safe)/95*curveLoad*dt*1.8;player.visualLane+=curveDir*drift;player.visualLane=Math.max(-.32,Math.min(lanes-.68,player.visualLane));curvePenaltyClock+=dt;if(curvePenaltyClock>.55){score=Math.max(0,score-8);curvePenaltyClock=0}}else curvePenaltyClock=0;}const shownSpeed=ps*1.55;player.progress+=Math.max(55,ps)*dt;score+=Math.max(55,ps)*dt*.22;
+ let ps=((player.stun?60:164)+(boost?86:0)+(player.itemSpeed?58:0)+(player.giant?28:0)+draft)*(player.durability<=0?.70:1);const curveLoad=Math.abs(curveStrength);if(curveLoad>.18){const safe=curveSafeSpeed-(difficulty-1)*1.8;const display=ps*1.55;if(display>safe){const drift=(display-safe)/95*curveLoad*dt*1.8;player.visualLane+=curveDir*drift;player.visualLane=Math.max(-.32,Math.min(lanes-.68,player.visualLane));curvePenaltyClock+=dt;if(curvePenaltyClock>.55){score=Math.max(0,score-8);curvePenaltyClock=0}}else curvePenaltyClock=0;}const shownSpeed=ps*1.55;player.progress+=Math.max(55,ps)*dt;score+=Math.max(55,ps)*dt*.22;
  speedValue.textContent=Math.round(Math.max(55,ps)*1.55);speedMeter.classList.toggle('draft',draft>0);
  rivals.forEach((n,i)=>{
    n.boostTime=Math.max(0,n.boostTime-dt);n.boostCooldown=Math.max(0,n.boostCooldown-dt);n.shield=Math.max(0,n.shield-dt);n.itemSpeed=Math.max(0,n.itemSpeed-dt);n.giant=Math.max(0,n.giant-dt);
@@ -319,14 +343,29 @@ function update(dt){
    if(Math.random()<.0012*difficulty)n.lane=findSafeLane(n,[player,...allNPC]);updateLanePosition(n,dt);
  });
  player.y=H-214;updateLanePosition(player,dt);
+ for(const n of allNPC){if(carsTouch(player,n))damagePlayer(10,'車同士の接触')}
  resolveCarOverlaps([player,...allNPC]);
  [player,...allNPC].forEach(car=>{if(car!==player)car.y=H*.56-(car.progress-player.progress)*1.45;updateLanePosition(car,dt)});
  nextBox-=dt;if(nextBox<=0){spawnItemBox();nextBox=4.5+Math.random()*3.5}
  itemBoxes.forEach(b=>{b.y=H*.56-(b.progress-player.progress)*1.45;b.x=laneX(b.lane,b.y);b.spin+=dt*3});
  const collectors=[player,...rivals,...traffic];
  itemBoxes=itemBoxes.filter(b=>{for(const car of collectors){const direct=car.lane===b.lane&&Math.abs(car.progress-b.progress)<42;if(direct){grantItem(car,car===player);if(car===player)score+=100;return false}}return b.y<H+120&&b.y>-120});
- nextTruck-=dt;if(nextTruck<0&&!truck){spawnTruck();nextTruck=15+Math.random()*8}if(truck){truck.y+=(320+(boost?70:0))*dt;truck.angle+=truck.spin*dt;truck.x=laneX(truck.lane,truck.y);if(hit(player,truck)){if(player.giant>0){score+=300;shake=15;show('💥 巨大化で暴走トラックを撃破！')}else if(player.shield>0){player.shield=0;show('🛡 シールドで防御！')}else{player.stun=3.2;player.progress-=125;player.crashSpin=1.15;crashFlash=.5;boost=0;boostCooldown=Math.max(boostCooldown,24);player.itemSpeed=0;score=Math.max(0,score-400);shake=24;show('💥 大クラッシュ！順位後退')}truck.y=H+300}allNPC.forEach(n=>{if(hit(n,truck)){if(n.giant>0){n.progress+=20}else if(n.shield>0)n.shield=0;else{n.progress-=105;n.boostTime=0;n.boostCooldown=Math.max(n.boostCooldown||0,12)}truck.y=H+300}});if(truck.y>H+260)truck=null}
- const cars=[player,...allNPC];for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){const a=cars[i],b=cars[j];const lateral=Math.abs(a.x-b.x);if(lateral>((a.w+b.w)*.44))continue;const giantHit=Math.abs(a.progress-b.progress)<((a.h+b.h)*.48);if(giantHit&&(a.giant>0||b.giant>0)){if(a.giant>0&&b.giant<=0)knockAway(a,b);else if(b.giant>0&&a.giant<=0)knockAway(b,a);continue}if(Math.abs(a.progress-b.progress)<((a.h+b.h)*.43)){const lead=a.progress>=b.progress?a:b,trail=lead===a?b:a;trail.progress=lead.progress-(a.h+b.h)*.43;trail.speed=Math.min(trail.speed||0,(lead.speed||0)-1.5);if(trail===player&&player.shield<=0){player.stun=Math.max(player.stun,.12);score=Math.max(0,score-3)}}}
+ nextTruck-=dt;if(nextTruck<0&&!truck){spawnTruck();nextTruck=15+Math.random()*8}if(truck){truck.y+=(320+(boost?70:0))*dt;truck.angle+=truck.spin*dt;truck.x=laneX(truck.lane,truck.y);if(hit(player,truck)){if(player.giant>0){score+=300;shake=15;show('💥 巨大化で暴走トラックを撃破！')}else if(player.shield>0){player.shield=0;show('🛡 シールドで防御！')}else{damagePlayer(10,'トラック衝突');player.stun=3.2;player.progress-=125;player.crashSpin=1.15;crashFlash=.5;boost=0;boostCooldown=Math.max(boostCooldown,24);player.itemSpeed=0;score=Math.max(0,score-400);shake=24;show('💥 大クラッシュ！順位後退')}truck.y=H+300}allNPC.forEach(n=>{if(hit(n,truck)){if(n.giant>0){n.progress+=20}else if(n.shield>0)n.shield=0;else{n.progress-=105;n.boostTime=0;n.boostCooldown=Math.max(n.boostCooldown||0,12)}truck.y=H+300}});if(truck.y>H+260)truck=null}
+ const cars=[player,...allNPC];
+ // Giant cars still knock smaller cars away, then the screen-space resolver
+ // guarantees that the two rendered bodies never remain on top of each other.
+ for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
+  const a=cars[i],b=cars[j];
+  const lateral=Math.abs(a.x-b.x);
+  if(lateral>((a.w+b.w)*.46))continue;
+  const vertical=Math.abs(a.y-b.y);
+  const giantRange=((a.h*(a.giant>0?1.5:1))+(b.h*(b.giant>0?1.5:1)))*.42;
+  if(vertical<giantRange&&(a.giant>0||b.giant>0)){
+   if(a.giant>0&&b.giant<=0)knockAway(a,b);
+   else if(b.giant>0&&a.giant<=0)knockAway(b,a);
+  }
+ }
+ resolveCarOverlaps(cars);
  player.crashSpin=Math.max(0,player.crashSpin-dt);crashFlash=Math.max(0,crashFlash-dt);shake*=.88;updateHud()
 }
 function roundedRect(ctx,x0,y0,w,h,r){ctx.beginPath();ctx.roundRect(x0,y0,w,h,r)}
