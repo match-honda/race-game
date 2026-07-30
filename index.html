@@ -124,18 +124,25 @@ async function start(){
  running=true;last=performance.now();requestAnimationFrame(loop)
 }
 function finish(){running=false;const finalScore=Math.floor(score);let newRecord=false;if(finalScore>highScore){highScore=finalScore;localStorage.setItem('formulaHighScore',String(highScore));highScoreEl.textContent=highScore.toLocaleString('ja-JP');newRecord=true}if(player.rank===1&&difficulty===unlocked&&unlocked<20){unlocked++;localStorage.setItem('formulaUnlocked',String(unlocked));show('LEVEL '+unlocked+' 解放！')}updateDifficultyUI();document.getElementById('resultTitle').textContent=newRecord?'🏆 NEW RECORD!':(player.rank===1?'優勝！':'FINISH');document.getElementById('resultText').textContent=`LEVEL ${difficulty}　最終順位 ${player.rank}位　スコア ${finalScore.toLocaleString('ja-JP')}　最高 ${Math.floor(highScore).toLocaleString('ja-JP')}`;document.getElementById('result').classList.remove('hidden')}
-function laneClear(car,target,allCars,frontBuffer=12,rearBuffer=20){
- const carH=car.h||88;
- return !allCars.some(o=>{
-  if(o===car)return false;
-  const visual=o.visualLane??o.lane;
-  const occupiesTarget=o.lane===target||Math.abs(visual-target)<.42;
+function progressCollisionGap(a,b,margin=3){
+ // progress is converted to screen Y with a factor of 1.45.
+ // Use the actual rendered car lengths, not a large fixed buffer.
+ return (((a.h||88)+(b.h||88))*.5)/1.45+margin;
+}
+function laneClear(car,target,allCars,frontBuffer=0,rearBuffer=0){
+ // Apply exactly the same clearance rule to every other vehicle.
+ // Color, rank and vehicle type do not affect this judgment.
+ return !allCars.some(other=>{
+  if(other===car)return false;
+  const visualLane=other.visualLane??other.lane;
+  // Cars already in the destination lane and cars crossing that lane both occupy it.
+  const occupiesTarget=other.lane===target||Math.abs(visualLane-target)<.54;
   if(!occupiesTarget)return false;
-  const gap=o.progress-car.progress;
-  const contactGap=(carH+(o.h||88))*.43;
-  const frontSafe=contactGap+frontBuffer;
-  const rearSafe=contactGap+rearBuffer;
-  return gap>=0?gap<frontSafe:-gap<rearSafe;
+  const longitudinalGap=other.progress-car.progress;
+  const contactGap=progressCollisionGap(car,other,2);
+  return longitudinalGap>=0
+   ? longitudinalGap<contactGap+frontBuffer
+   : -longitudinalGap<contactGap+rearBuffer;
  });
 }
 function move(d){
@@ -143,8 +150,8 @@ function move(d){
  if(Math.abs((player.visualLane??player.lane)-player.lane)>.12)return;
  const target=Math.max(0,Math.min(lanes-1,player.lane+d));
  if(target===player.lane)return;
- const all=[...rivals,...traffic];
- if(laneClear(player,target,all,10,22))player.lane=target;
+ const allEnemyCars=[...rivals,...traffic];
+ if(laneClear(player,target,allEnemyCars,0,2))player.lane=target;
  else show('前後の車が近すぎます');
 }
 function useBoost(){if(!running||boost>0||boostCooldown>0||player.stun>0)return;boost=10;show('オーバーテイクモード 10秒！');if(navigator.vibrate)navigator.vibrate(30)}
@@ -153,32 +160,46 @@ bind('left',()=>move(-1));bind('right',()=>move(1));bind('boost',useBoost);docum
 document.addEventListener('gesturestart',e=>e.preventDefault());let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<300)e.preventDefault();lt=n},{passive:false});
 function spawnTruck(){truck={lane:Math.floor(Math.random()*lanes),y:-210,w:92,h:180,angle:(Math.random()-.5)*.75,spin:(Math.random()>.5?1:-1)*.95};show('🚛 回転暴走トラック!!')}
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.34&&Math.abs(a.y-b.y)<(a.h+b.h)*.34}
-function findSafeLane(car,allCars){let choices=[car.lane-1,car.lane+1].filter(l=>l>=0&&l<lanes);choices.sort(()=>Math.random()-.5);for(const l of choices){if(laneClear(car,l,allCars,14,28))return l}return car.lane}
+function findSafeLane(car,allCars){
+ if(Math.abs((car.visualLane??car.lane)-car.lane)>.10)return car.lane;
+ let choices=[car.lane-1,car.lane+1].filter(l=>l>=0&&l<lanes);
+ choices.sort(()=>Math.random()-.5);
+ for(const l of choices){if(laneClear(car,l,allCars,1,4))return l}
+ return car.lane;
+}
 function spawnItemBox(){const lane=Math.floor(Math.random()*lanes);itemBoxes.push({lane,progress:player.progress+260+Math.random()*300,y:-80,x:0,w:44,h:44,spin:0})}
 function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=8;if(isPlayer)show('⚡ スピードUP 8秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
 function resolveCarOverlaps(cars){
- for(let pass=0;pass<3;pass++){
+ // Run several passes so no rival can tunnel through another car in one frame.
+ for(let pass=0;pass<5;pass++){
   for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
    const a=cars[i],b=cars[j];
-   const lateral=Math.abs((a.x||laneX(a.visualLane??a.lane,a.y))-(b.x||laneX(b.visualLane??b.lane,b.y)));
-   const lateralLimit=((a.w||44)+(b.w||44))*.42;
-   if(lateral>lateralLimit||a.giant>0||b.giant>0)continue;
-   const minGap=((a.h||88)+(b.h||88))*.43;
-   const aCrossed=(a.prevProgress??a.progress)<(b.prevProgress??b.progress)&&a.progress>=b.progress;
-   const bCrossed=(b.prevProgress??b.progress)<(a.prevProgress??a.progress)&&b.progress>=a.progress;
-   if(aCrossed){a.progress=b.progress-minGap;a.speed=Math.min(a.speed||0,(b.speed||0)-1.5)}
-   else if(bCrossed){b.progress=a.progress-minGap;b.speed=Math.min(b.speed||0,(a.speed||0)-1.5)}
-   else if(Math.abs(a.progress-b.progress)<minGap){
+   if(a.giant>0||b.giant>0)continue;
+   const ax=a.x||laneX(a.visualLane??a.lane,a.y),bx=b.x||laneX(b.visualLane??b.lane,b.y);
+   const lateral=Math.abs(ax-bx);
+   const lateralLimit=((a.w||44)+(b.w||44))*.46;
+   if(lateral>=lateralLimit)continue;
+   const minGap=progressCollisionGap(a,b,4);
+   const aPrev=a.prevProgress??a.progress,bPrev=b.prevProgress??b.progress;
+   const aCrossed=aPrev<bPrev&&a.progress>=b.progress;
+   const bCrossed=bPrev<aPrev&&b.progress>=a.progress;
+   if(aCrossed){
+    a.progress=b.progress-minGap;
+    a.speed=Math.min(a.speed||0,Math.max(0,(b.speed||0)-1));
+   }else if(bCrossed){
+    b.progress=a.progress-minGap;
+    b.speed=Math.min(b.speed||0,Math.max(0,(a.speed||0)-1));
+   }else if(Math.abs(a.progress-b.progress)<minGap){
     const lead=a.progress>=b.progress?a:b,trail=lead===a?b:a;
     trail.progress=lead.progress-minGap;
-    trail.speed=Math.min(trail.speed||0,(lead.speed||0)-1.5);
+    trail.speed=Math.min(trail.speed||0,Math.max(0,(lead.speed||0)-1));
    }
   }
  }
 }
 function updateLanePosition(car,dt){
  if(car.visualLane==null)car.visualLane=car.lane;
- car.visualLane+=(car.lane-car.visualLane)*Math.min(1,dt*5.5);
+ car.visualLane+=(car.lane-car.visualLane)*Math.min(1,dt*4.6);
  if(Math.abs(car.visualLane-car.lane)<.015)car.visualLane=car.lane;
  car.x=laneX(car.visualLane,car.y);
 }
