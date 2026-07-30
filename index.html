@@ -63,7 +63,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div class="highScore">🏆 最高スコア <strong id="highScore">0</strong></div>
   <div class="overtakeRule"><strong>オーバーテイクモード</strong><br>10秒間使用できます。使用後は20秒間、再使用できません。<br>このルールはプレイヤーもライバル車も共通です。<br>？ボックスの「巨大化」と「スピードUP」は8秒間。巨大化中は1.5倍・速度UP・体当たり無敵。</div>
   <button id="startBtn" class="startBtn">レーススタート</button>
-  <div class="how">4台で順位を争います。<br>左右でレーン移動、オーバーテイクモードで一気に追い抜け。</div>
+  <div class="how">4台で順位を争います。<br>LEVEL4からカーブが登場。左右操作で走行ラインを保とう。</div>
  </div>
 </div>
 <div id="result" class="result hidden"><div class="resultCard"><h1 id="resultTitle">FINISH</h1><p id="resultText"></p><button id="retry" class="retryBtn">もう一度</button></div></div>
@@ -96,7 +96,7 @@ for(let lv=1;lv<=20;lv++){
 }
 function resize(){dpr=Math.min(2,devicePixelRatio||1);W=app.clientWidth;H=app.clientHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);hero.width=330*dpr;hero.height=190*dpr;hx.setTransform(dpr,0,0,dpr,0,0);drawHero();player.y=H-214}
 addEventListener('resize',resize);resize();
-function roadGeom(y){const topY=88,bottomY=H,tt=Math.max(0,Math.min(1,(y-topY)/(bottomY-topY))),e=tt*tt*(3-2*tt);return{cx:W/2,w:W*(.42+e*.48),p:e,topY}}
+function roadGeom(y){const topY=88,bottomY=H,tt=Math.max(0,Math.min(1,(y-topY)/(bottomY-topY))),e=tt*tt*(3-2*tt);const perspective=(1-e);const bend=Math.sin((1-e)*Math.PI*.92)*curveStrength*W*.24;return{cx:W/2+bend*perspective,w:W*(.42+e*.48),p:e,topY}}
 function laneX(l,y=H*.6){const g=roadGeom(y);return g.cx-g.w/2+(l+.5)*(g.w/lanes)}
 function updateDifficultyUI(){levelSelect.innerHTML='';for(let lv=1;lv<=20;lv++){const o=document.createElement('option');o.value=lv;o.textContent='LEVEL '+lv+(lv>unlocked?' 🔒':'');o.disabled=lv>unlocked;levelSelect.appendChild(o)}if(difficulty>unlocked)difficulty=unlocked;levelSelect.value=String(difficulty);unlockNote.textContent=unlocked<20?'1位でLEVEL '+(unlocked+1)+'が解放されます':'LEVEL 20まで全解放済み'}
 levelSelect.addEventListener('change',()=>{const lv=+levelSelect.value;if(lv<=unlocked){difficulty=lv;updateDifficultyUI()}});updateDifficultyUI();
@@ -236,7 +236,26 @@ function nearestFrontCar(car,cars){
  return best?{car:best,gap:bestGap}:null;
 }
 function knockAway(big,other){other.progress-=95;other.speed=Math.max(55,(other.speed||130)-45);const options=[big.lane-1,big.lane+1].filter(l=>l>=0&&l<lanes);if(options.length)other.lane=options[Math.floor(Math.random()*options.length)];if(other===player){player.stun=.45;shake=12}else if(big===player){score+=55}}
-function updateCurve(){curveStrength=0;curveTarget=0;curveDir=0;}
+function updateCurve(dt){
+ if(difficulty<=3){curveTarget=0;curveDir=0;}
+ else{
+  const phase=t%18;
+  let target=0;
+  if(difficulty<=6){if(phase>5&&phase<12)target=.34;}
+  else if(difficulty<=9){if(phase>3&&phase<8)target=.34;else if(phase>10&&phase<15)target=-.34;}
+  else if(difficulty<=12){if(phase>2&&phase<6.5)target=.42;else if(phase>7.5&&phase<12)target=-.42;else if(phase>13&&phase<16.5)target=.30;}
+  else if(difficulty<=15){if(phase>2&&phase<7)target=.50;else if(phase>9&&phase<14)target=-.50;}
+  else if(difficulty<=18){if(phase>1.5&&phase<5)target=.56;else if(phase>5.5&&phase<9)target=-.56;else if(phase>10&&phase<13.5)target=.48;else if(phase>14&&phase<17)target=-.48;}
+  else{if(phase>1&&phase<4.5)target=.62;else if(phase>5&&phase<8.5)target=-.62;else if(phase>9&&phase<12)target=.56;else if(phase>12.5&&phase<16.5)target=-.56;}
+  curveTarget=target;
+  curveDir=Math.sign(target);
+  const nearStart=(phase>1&&phase<3)||(phase>9&&phase<11);
+  if(nearStart&&Math.abs(target)>.25&&Math.abs(curveStrength)<.12&&!updateCurve.warned){show(target>0?'右カーブ →':'← 左カーブ');updateCurve.warned=true;}
+  if(Math.abs(target)<.05)updateCurve.warned=false;
+ }
+ curveStrength+=(curveTarget-curveStrength)*Math.min(1,dt*1.8);
+}
+
 function update(dt){
  t+=dt;if(t>=duration){finish();return}
  updateCurve(dt);
@@ -247,7 +266,7 @@ function update(dt){
  const allNPC=[...rivals,...traffic];
  [player,...allNPC].forEach(car=>car.prevProgress=car.progress);
  const draft=draftingBonus(player,[player,...allNPC],dt);
- let ps=(player.stun?60:164)+(boost?86:0)+(player.itemSpeed?58:0)+(player.giant?28:0)+draft;const shownSpeed=ps*1.55;player.progress+=Math.max(55,ps)*dt;score+=Math.max(55,ps)*dt*.22;
+ let ps=(player.stun?60:164)+(boost?86:0)+(player.itemSpeed?58:0)+(player.giant?28:0)+draft;const curveLoad=Math.abs(curveStrength);if(curveLoad>.18){const safe=curveSafeSpeed-(difficulty-1)*1.8;const display=ps*1.55;if(display>safe){const drift=(display-safe)/95*curveLoad*dt*1.8;player.visualLane+=curveDir*drift;player.visualLane=Math.max(-.32,Math.min(lanes-.68,player.visualLane));curvePenaltyClock+=dt;if(curvePenaltyClock>.55){score=Math.max(0,score-8);curvePenaltyClock=0}}else curvePenaltyClock=0;}const shownSpeed=ps*1.55;player.progress+=Math.max(55,ps)*dt;score+=Math.max(55,ps)*dt*.22;
  speedValue.textContent=Math.round(Math.max(55,ps)*1.55);speedMeter.classList.toggle('draft',draft>0);
  rivals.forEach((n,i)=>{
    n.boostTime=Math.max(0,n.boostTime-dt);n.boostCooldown=Math.max(0,n.boostCooldown-dt);n.shield=Math.max(0,n.shield-dt);n.itemSpeed=Math.max(0,n.itemSpeed-dt);n.giant=Math.max(0,n.giant-dt);
