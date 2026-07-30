@@ -124,15 +124,36 @@ async function start(){
  running=true;last=performance.now();requestAnimationFrame(loop)
 }
 function finish(){running=false;const finalScore=Math.floor(score);let newRecord=false;if(finalScore>highScore){highScore=finalScore;localStorage.setItem('formulaHighScore',String(highScore));highScoreEl.textContent=highScore.toLocaleString('ja-JP');newRecord=true}if(player.rank===1&&difficulty===unlocked&&unlocked<20){unlocked++;localStorage.setItem('formulaUnlocked',String(unlocked));show('LEVEL '+unlocked+' 解放！')}updateDifficultyUI();document.getElementById('resultTitle').textContent=newRecord?'🏆 NEW RECORD!':(player.rank===1?'優勝！':'FINISH');document.getElementById('resultText').textContent=`LEVEL ${difficulty}　最終順位 ${player.rank}位　スコア ${finalScore.toLocaleString('ja-JP')}　最高 ${Math.floor(highScore).toLocaleString('ja-JP')}`;document.getElementById('result').classList.remove('hidden')}
-function laneClear(car,target,allCars,margin=112){return !allCars.some(o=>o!==car&&o.lane===target&&Math.abs(o.progress-car.progress)<margin)}
-function move(d){if(!running)return;const target=Math.max(0,Math.min(lanes-1,player.lane+d));if(target===player.lane)return;const all=[...rivals,...traffic];if(laneClear(player,target,all,130))player.lane=target;else show('前後の車が近すぎます')}
+function laneClear(car,target,allCars,frontBuffer=12,rearBuffer=20){
+ const carH=car.h||88;
+ return !allCars.some(o=>{
+  if(o===car)return false;
+  const visual=o.visualLane??o.lane;
+  const occupiesTarget=o.lane===target||Math.abs(visual-target)<.42;
+  if(!occupiesTarget)return false;
+  const gap=o.progress-car.progress;
+  const contactGap=(carH+(o.h||88))*.43;
+  const frontSafe=contactGap+frontBuffer;
+  const rearSafe=contactGap+rearBuffer;
+  return gap>=0?gap<frontSafe:-gap<rearSafe;
+ });
+}
+function move(d){
+ if(!running)return;
+ if(Math.abs((player.visualLane??player.lane)-player.lane)>.12)return;
+ const target=Math.max(0,Math.min(lanes-1,player.lane+d));
+ if(target===player.lane)return;
+ const all=[...rivals,...traffic];
+ if(laneClear(player,target,all,10,22))player.lane=target;
+ else show('前後の車が近すぎます');
+}
 function useBoost(){if(!running||boost>0||boostCooldown>0||player.stun>0)return;boost=10;show('オーバーテイクモード 10秒！');if(navigator.vibrate)navigator.vibrate(30)}
 function bind(id,fn){const b=document.getElementById(id);b.addEventListener('pointerdown',e=>{e.preventDefault();fn()},{passive:false})}
 bind('left',()=>move(-1));bind('right',()=>move(1));bind('boost',useBoost);document.getElementById('startBtn').onclick=start;document.getElementById('retry').onclick=()=>{document.getElementById('result').classList.add('hidden');document.getElementById('start').classList.remove('hidden')};
 document.addEventListener('gesturestart',e=>e.preventDefault());let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<300)e.preventDefault();lt=n},{passive:false});
 function spawnTruck(){truck={lane:Math.floor(Math.random()*lanes),y:-210,w:92,h:180,angle:(Math.random()-.5)*.75,spin:(Math.random()>.5?1:-1)*.95};show('🚛 回転暴走トラック!!')}
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.34&&Math.abs(a.y-b.y)<(a.h+b.h)*.34}
-function findSafeLane(car,allCars){let choices=[car.lane-1,car.lane+1].filter(l=>l>=0&&l<lanes);choices.sort(()=>Math.random()-.5);for(const l of choices){if(laneClear(car,l,allCars,155))return l}return car.lane}
+function findSafeLane(car,allCars){let choices=[car.lane-1,car.lane+1].filter(l=>l>=0&&l<lanes);choices.sort(()=>Math.random()-.5);for(const l of choices){if(laneClear(car,l,allCars,14,28))return l}return car.lane}
 function spawnItemBox(){const lane=Math.floor(Math.random()*lanes);itemBoxes.push({lane,progress:player.progress+260+Math.random()*300,y:-80,x:0,w:44,h:44,spin:0})}
 function grantItem(car,isPlayer=false){const r=Math.floor(Math.random()*3);if(r===0){car.shield=5;if(isPlayer)show('🛡 シールド 5秒')}else if(r===1){car.itemSpeed=8;if(isPlayer)show('⚡ スピードUP 8秒')}else{car.giant=8;if(isPlayer)show('🔴 巨大化！8秒間・体当たり無敵')}}
 function resolveCarOverlaps(cars){
